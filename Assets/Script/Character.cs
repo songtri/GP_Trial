@@ -1,10 +1,22 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Character : MonoBehaviour
 {
 	private Animator animator;
+	[SerializeField]
+	public int HP = 100;
+	[SerializeField]
+	public int Damage = 10;
+	[SerializeField]
+	public int RageDamage = 20;
+
+	public bool IsDead { get => HP <= 0; }
+	private bool SinkBody = false;
+
+	public event Action<Character> OnAttack;
 
 	private bool IsMovable
 	{
@@ -20,6 +32,14 @@ public class Character : MonoBehaviour
 		animator = GetComponent<Animator>();
 	}
 
+	private void Update()
+	{
+		if (SinkBody)
+		{
+			transform.localPosition -= new Vector3(0f, Time.deltaTime / 3f, 0f);
+		}
+	}
+
 	public void Move(Vector2 direction, bool move)
 	{
 		if (move && IsMovable)
@@ -33,15 +53,52 @@ public class Character : MonoBehaviour
 			transform.localPosition += movement;
 		}
 		animator.SetBool("SetWalking", move);
+		animator.SetBool("AttackCancel", true);
 	}
 
 	public void Rotate(float xAngle)
 	{
-		transform.Rotate(0f, xAngle, 0f);
+		transform.Rotate(0f, xAngle * 1.5f, 0f);
 	}
 
 	public void Attack()
 	{
 		animator.SetBool("SetAttack", true);
+	}
+
+	#region Animation Event
+
+	public void AttackEvent()
+	{
+		//Debug.Log("Animation Hit");
+		// check collision
+		OnAttack(this);
+	}
+
+	public void StartSinkEvent()
+	{
+		Destroy(gameObject, 5f);
+		SinkBody = true;
+	}
+
+	#endregion
+
+	public void OnAttacked(int damage)
+	{
+		//var smr = transform.GetChild(2).GetComponent<SkinnedMeshRenderer>();
+		//smr.materials[0].color = Color.red;
+		HP -= damage;
+		if (HP <= 0)
+		{
+			HP = 0;
+			Die();
+		}
+		else
+			animator.SetBool("SetHit", true);
+	}
+
+	public void Die()
+	{
+		animator.SetBool("SetDead", true);
 	}
 }

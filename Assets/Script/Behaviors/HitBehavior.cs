@@ -2,13 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AttackBehavior : StateMachineBehaviour
+public class HitBehavior : StateMachineBehaviour
 {
+	private Color originalColor;
+
 	// OnStateEnter is called when a transition starts and the state machine starts to evaluate this state
-	//override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
-	//{
-	//    
-	//}
+	override public void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+	{
+		var smr = animator.transform.GetChild(2).GetComponent<SkinnedMeshRenderer>();
+		originalColor = smr.materials[0].color;
+		smr.materials[0].color = Color.red;
+	}
 
 	// OnStateUpdate is called on each Update frame between OnStateEnter and OnStateExit callbacks
 	//override public void OnStateUpdate(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
@@ -16,11 +20,12 @@ public class AttackBehavior : StateMachineBehaviour
 	//    
 	//}
 
-	//OnStateExit is called when a transition ends and the state machine finishes evaluating this state
+	// OnStateExit is called when a transition ends and the state machine finishes evaluating this state
 	override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
 	{
-		animator.SetBool("SetAttack", false);
-		animator.SetBool("AttackCancel", false);
+		animator.SetBool("SetHit", false);
+		var smr = animator.transform.GetChild(2).GetComponent<SkinnedMeshRenderer>();
+		smr.materials[0].color = originalColor;
 	}
 
 	// OnStateMove is called right after Animator.OnAnimatorMove()
