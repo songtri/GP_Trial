@@ -52,8 +52,8 @@ public class Character : MonoBehaviour
 				movement = new Vector3(forward.z * direction.y, 0f, - forward.x * direction.y) * Time.deltaTime;
 			transform.localPosition += movement;
 		}
-		animator.SetBool("SetWalking", move);
-		animator.SetBool("AttackCancel", true);
+		animator.SetBool(AnimationState.Running.ToString(), move);
+		animator.SetTrigger(AnimationStateTrigger.AttackCancel.ToString());
 	}
 
 	public void Rotate(float xAngle)
@@ -63,7 +63,7 @@ public class Character : MonoBehaviour
 
 	public void Attack()
 	{
-		animator.SetBool("SetAttack", true);
+		animator.SetTrigger(AnimationStateTrigger.BasicAttack.ToString());
 	}
 
 	#region Animation Event
@@ -72,7 +72,7 @@ public class Character : MonoBehaviour
 	{
 		//Debug.Log("Animation Hit");
 		// check collision
-		OnAttack(this);
+		OnAttack?.Invoke(this);
 	}
 
 	public void StartSinkEvent()
@@ -94,11 +94,11 @@ public class Character : MonoBehaviour
 			Die();
 		}
 		else
-			animator.SetBool("SetHit", true);
+			animator.SetTrigger(AnimationStateTrigger.HitByAttacker.ToString());
 	}
 
 	public void Die()
 	{
-		animator.SetBool("SetDead", true);
+		animator.SetTrigger("Die");
 	}
 }

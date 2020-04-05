@@ -12,6 +12,8 @@ public class GameController : MonoBehaviour
 
 	[SerializeField]
 	private Camera mainCamera = null;
+	[SerializeField]
+	private Vector3 cameraPosToPlayer = new Vector3(0f, 2f, -2.4f);
 
 	private Character mainPlayer = null;
 	private List<Character> monsterList = new List<Character>();
@@ -22,9 +24,9 @@ public class GameController : MonoBehaviour
 		mainPlayer = go.GetComponent<Character>();
 		mainPlayer.OnAttack += OnAttackAction;
 		mainCamera.transform.parent = mainPlayer.transform;
-		mainCamera.transform.localScale = Vector3.one;
-		mainCamera.transform.localPosition = new Vector3(0, 0.1f, -0.2f);
+		mainCamera.transform.localPosition = /*mainPlayer.transform.position + */cameraPosToPlayer;
 		mainCamera.transform.forward = mainPlayer.transform.forward;
+		mainCamera.transform.Rotate(10f, -0.5f, 0f);
 	}
 
 	private void OnAttackAction(Character attacker)
@@ -67,8 +69,8 @@ public class GameController : MonoBehaviour
 
 	private void UpdateCamera()
 	{
-		//mainCamera.transform.position = mainPlayer.transform.position;
-		//mainCamera.transform.SetPositionAndRotation(mainPlayer.transform.position + new Vector3(0f, 0.1f, -0.15f), mainPlayer.transform.rotation);
+		//mainCamera.transform.position = mainPlayer.transform.position + cameraPosToPlayer;
+		//mainCamera.transform.SetPositionAndRotation(mainPlayer.transform.position + new Vector3(0f, 2f, -2.5f), mainPlayer.transform.rotation);
 	}
 
 	private void CheckInput()
@@ -103,6 +105,7 @@ public class GameController : MonoBehaviour
 
 		float xAngle = Input.GetAxis("Mouse X");
 		mainPlayer.Rotate(xAngle);
+		//mainCamera.transform.Rotate(0f, xAngle * 1.5f, 0f);
 	}
 
 	private void CreateMonster()
