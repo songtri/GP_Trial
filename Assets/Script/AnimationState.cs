@@ -11,7 +11,11 @@ public enum AnimationState
 
 public enum AnimationStateTrigger
 {
-	BasicAttack,
+	SlashAttack,
+	BluntAttack,
+	PierceAttack,
 	HitByAttacker,
+	HitByAttackerHeavy,
 	AttackCancel,
+	Die
 }

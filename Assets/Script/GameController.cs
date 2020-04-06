@@ -8,7 +8,13 @@ public class GameController : MonoBehaviour
 	[SerializeField]
 	private GameObject CharacterPrefab = null;
 	[SerializeField]
-	private GameObject MonsterPrefab = null;
+	private GameObject EnemyPrefab = null;
+	[SerializeField]
+	private int MaxEnemy = 3;
+	[SerializeField]
+	private GameObject EnemySpawnPoints = null;
+	[SerializeField]
+	private Transform EnemyObjectRoot = null;
 
 	[SerializeField]
 	private Camera mainCamera = null;
@@ -16,33 +22,27 @@ public class GameController : MonoBehaviour
 	private Vector3 cameraPosToPlayer = new Vector3(0f, 2f, -2.4f);
 
 	private Character mainPlayer = null;
-	private List<Character> monsterList = new List<Character>();
+	private List<Character> enemyList = new List<Character>();
+	private List<Transform> enemySpawnPoints = new List<Transform>();
+	private int currentEnemySpawnIndex = 0;
 
 	private void Start()
 	{
 		GameObject go = Instantiate(CharacterPrefab);
 		mainPlayer = go.GetComponent<Character>();
-		mainPlayer.OnAttack += OnAttackAction;
+		mainPlayer.OnAttack += MainPlayer_OnAttack;
+		mainPlayer.OnDie += MainPlayer_OnDie;
+
 		mainCamera.transform.parent = mainPlayer.transform;
 		mainCamera.transform.localPosition = /*mainPlayer.transform.position + */cameraPosToPlayer;
 		mainCamera.transform.forward = mainPlayer.transform.forward;
-		mainCamera.transform.Rotate(10f, -0.5f, 0f);
-	}
+		mainCamera.transform.Rotate(7f, 0f, 0f);
 
-	private void OnAttackAction(Character attacker)
-	{
-		if (attacker == mainPlayer)
+		enemySpawnPoints.Clear();
+		for (int i = 0; i < EnemySpawnPoints.transform.childCount; ++i)
 		{
-			foreach (var monster in monsterList)
-			{
-				if (!monster.IsDead && CheckAttackRange(mainPlayer.transform.position, monster.transform.position))
-					monster.OnAttacked(attacker.Damage);
-			}
-		}
-		else
-		{
-			if (CheckAttackRange(attacker.transform.position, mainPlayer.transform.position))
-				mainPlayer.OnAttacked(attacker.Damage);
+			var tr = EnemySpawnPoints.transform.GetChild(i);
+			enemySpawnPoints.Add(tr);
 		}
 	}
 
@@ -63,8 +63,8 @@ public class GameController : MonoBehaviour
 		UpdateCamera();
 		CheckInput();
 
-		if (monsterList.Count <= 0)
-			CreateMonster();
+		if (enemyList.Count < MaxEnemy)
+			CreateEnemy();
 	}
 
 	private void UpdateCamera()
@@ -100,19 +100,55 @@ public class GameController : MonoBehaviour
 
 		if (Input.GetMouseButtonDown(0))
 		{
-			mainPlayer.Attack();
+			mainPlayer.Attack(0);
 		}
+		if (Input.GetMouseButtonDown(1))
+			mainPlayer.Attack(1);
 
 		float xAngle = Input.GetAxis("Mouse X");
 		mainPlayer.Rotate(xAngle);
 		//mainCamera.transform.Rotate(0f, xAngle * 1.5f, 0f);
 	}
 
-	private void CreateMonster()
+	private void CreateEnemy()
 	{
-		GameObject go = Instantiate(MonsterPrefab);
-		var monster = go.GetComponent<Character>();
-		monster.transform.position = new Vector3(0, 0, 2.5f);
-		monsterList.Add(monster);
+		// TODO: use object pooling for more performance
+		GameObject go = Instantiate(EnemyPrefab, EnemyObjectRoot);
+		var enemy = go.GetComponent<Character>();
+		enemy.OnAttack += Enemy_OnAttack;
+		enemy.OnDie += Enemy_OnDie;
+		enemy.transform.position = enemySpawnPoints[currentEnemySpawnIndex++].position;
+		if (currentEnemySpawnIndex >= enemySpawnPoints.Count)
+			currentEnemySpawnIndex = 0;
+		enemyList.Add(enemy);
 	}
+
+	#region Event Handlers
+
+	private void MainPlayer_OnAttack(Character obj)
+	{
+		foreach (var monster in enemyList)
+		{
+			if (!monster.IsDead && CheckAttackRange(mainPlayer.transform.position, monster.transform.position))
+				monster.OnAttacked(obj.Damage);
+		}
+	}
+
+	private void MainPlayer_OnDie(Character obj)
+	{
+		//throw new NotImplementedException();
+	}
+
+	private void Enemy_OnAttack(Character obj)
+	{
+		if (CheckAttackRange(obj.transform.position, mainPlayer.transform.position))
+			mainPlayer.OnAttacked(obj.Damage);
+	}
+
+	private void Enemy_OnDie(Character obj)
+	{
+		enemyList.Remove(obj);
+	}
+
+	#endregion
 }
