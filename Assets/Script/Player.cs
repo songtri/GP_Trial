@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -35,12 +36,22 @@ public class Player
 	public int MaxRage = 1000;
 	private bool IsOutOfCombat = true;
 	public bool IsInBerserkerState = false;
-	private const int rageGainPerAttack = 50;
+
+	private const int rageGainPerAttack = 500;
+	private const int rageGainPerAttacked = 50;
 	private const int rageGainPerLostHpRatio = 23;   // gain per 1% hp loss
 	private const float minLostHpRatioToGainRage = 5;
 	private const int rageLossPerSecondOutOfCombat = 100;
-	private const int rageLossInBerserkState = 100; // determines how long berserk state will last
+	private const int rageLossInBerserkState = 200; // determines how long berserk state will last
 	public const float minSecondToBeOutOfCombat = 2f;
+
+	public const float moveSpeedBonusMultipliedInBerserk = 2f;
+	public const float moveSpeedBonusAddedInBerserk = 0f;
+	public const float damageBonusMultipliedInBerserk = 0f;
+	public const int damageBonusAddedInBerserk = 0;
+
+	public event Action OnBerserkStateStarted;
+	public event Action OnBerserkStateEnded;
 
 	public void SetAttack(int button, int skill)
 	{
@@ -62,11 +73,13 @@ public class Player
 		{
 			Rage = MaxRage;
 			IsInBerserkerState = true;
+			OnBerserkStateStarted?.Invoke();
 		}
 	}
 
 	public void Update(float delta)
 	{
+		//Debug.Log("Player.Update: " + delta);
 		if (IsInBerserkerState)
 		{
 			Rage -= (int)(rageLossInBerserkState * delta);
@@ -78,12 +91,21 @@ public class Player
 		}
 
 		if (Rage < 0)
+		{
+			if (IsInBerserkerState)
+			{
+				OnBerserkStateEnded?.Invoke();
+				IsInBerserkerState = false;
+			}
+
 			Rage = 0;
+		}
 	}
 
 	public void OnAttack()
 	{
-		Rage += rageGainPerAttack;
+		if (!IsInBerserkerState)
+			Rage += rageGainPerAttack;
 		CheckMaxRage();
 	}
 
@@ -95,7 +117,11 @@ public class Player
 	public void OnDamaged(int damage, float ratio)
 	{
 		HP -= damage;
-		Rage += (int)(rageGainPerLostHpRatio * (ratio - minLostHpRatioToGainRage));
+		if (!IsInBerserkerState)
+		{
+			Rage += rageGainPerAttacked;
+			Rage += (int)(rageGainPerLostHpRatio * (ratio - minLostHpRatioToGainRage));
+		}
 		CheckMaxRage();
 	}
 
@@ -107,5 +133,13 @@ public class Player
 	public void OnDie()
 	{
 		Rage = 0;
+	}
+
+	public int GetCurrentDamage(int baseDmg)
+	{
+		if (IsInBerserkerState)
+			return (int)(baseDmg * damageBonusMultipliedInBerserk) + damageBonusAddedInBerserk;
+		else
+			return baseDmg;
 	}
 }

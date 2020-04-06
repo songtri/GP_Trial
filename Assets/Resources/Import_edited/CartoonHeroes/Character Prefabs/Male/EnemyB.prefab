@@ -4743,7 +4743,7 @@ Animator:
   m_Controller: {fileID: 9100000, guid: e485c652ad79b2c4187562a294cd8fed, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
-  m_ApplyRootMotion: 1
+  m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
@@ -4764,9 +4764,7 @@ MonoBehaviour:
   MoveSpeed: 2
   MaxHP: 100
   Damage: 10
-  RageDamage: 20
   HeavyDmgThreshold: 0.2
-  Brain: {fileID: 7911371853618852975}
 --- !u!114 &7911371853618852975
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4779,6 +4777,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9aa332e3727922c4eba6b323f5adb606, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Active: 0
 --- !u!114 &114131247499309610
 MonoBehaviour:
   m_ObjectHideFlags: 0

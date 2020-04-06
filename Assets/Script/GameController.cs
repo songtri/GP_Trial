@@ -38,8 +38,11 @@ public class GameController : MonoBehaviour
 		mainPlayer.OnEnterCombat += Player.instance.OnEnterCombat;
 		mainPlayer.OnDamaged += MainPlayer_OnDamaged;
 		mainPlayer.OnOutOfCombat += Player.instance.OnOutOfCombat;
+		mainPlayer.OnFinishTarget += MainPlayer_OnFinishTarget;
 		mainPlayer.OnDie += MainPlayer_OnDie;
 		Player.instance.HP = mainPlayer.CurrentHP;
+		Player.instance.OnBerserkStateStarted += Instance_OnBerserkStateStarted;
+		Player.instance.OnBerserkStateEnded += Instance_OnBerserkStateEnded;
 
 		mainCamera.transform.parent = mainPlayer.transform;
 		mainCamera.transform.localPosition = /*mainPlayer.transform.position + */cameraPosToPlayer;
@@ -71,6 +74,7 @@ public class GameController : MonoBehaviour
 
 	private void Update()
 	{
+		//Debug.Log("GameController.Update: " + Time.deltaTime);
 		Player.instance.Update(Time.deltaTime);
 		UpdateCamera();
 		CheckInput();
@@ -87,7 +91,7 @@ public class GameController : MonoBehaviour
 
 	private void CheckInput()
 	{
-		if (!EventSystem.current.IsPointerOverGameObject())
+		if (!EventSystem.current.IsPointerOverGameObject() && !Player.instance.IsInBerserkerState)
 		{
 			int forwardMove = 0;
 			int sideMove = 0;
@@ -121,7 +125,6 @@ public class GameController : MonoBehaviour
 
 			float xAngle = Input.GetAxis("Mouse X");
 			mainPlayer.Rotate(xAngle * 1.5f);
-			//mainCamera.transform.Rotate(0f, xAngle * 1.5f, 0f);
 		}
 	}
 
@@ -146,9 +149,8 @@ public class GameController : MonoBehaviour
 		{
 			if (!monster.IsDead && CheckAttackRange(mainPlayer.transform.position, monster.transform.position))
 			{
-				monster.OnAttacked(obj.Damage);
+				monster.OnAttacked(monster, Player.instance.GetCurrentDamage(obj.Damage));
 				Player.instance.OnAttack();
-				return true;
 			}
 		}
 
@@ -160,6 +162,21 @@ public class GameController : MonoBehaviour
 		Player.instance.OnDamaged(damage, ratio);
 	}
 
+	private void MainPlayer_OnFinishTarget(Character obj)
+	{
+		throw new NotImplementedException();
+	}
+
+	private void Instance_OnBerserkStateStarted()
+	{
+		mainPlayer.SetMoveType(AnimationState.Running);
+	}
+
+	private void Instance_OnBerserkStateEnded()
+	{
+		mainPlayer.SetMoveType(AnimationState.Walking);
+	}
+
 	private void MainPlayer_OnDie(Character obj)
 	{
 		Player.instance.OnDie();
@@ -169,7 +186,7 @@ public class GameController : MonoBehaviour
 	{
 		if (CheckAttackRange(obj.transform.position, mainPlayer.transform.position))
 		{
-			mainPlayer.OnAttacked(obj.Damage);
+			mainPlayer.OnAttacked(mainPlayer, obj.Damage);
 			return true;
 		}
 

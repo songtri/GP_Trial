@@ -37,6 +37,7 @@ public class UICombat : MonoBehaviour
 
 	private void Update()
 	{
+		//Debug.Log("UICombat.Update: " + Time.deltaTime);
 		RageValue.text = string.Format(RageFormat, Player.instance.Rage);
 		PlayerRage.value = Player.instance.Rage;
 		PlayerHP.text = string.Format(HpFormat, Player.instance.HP);

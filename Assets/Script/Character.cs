@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Animations;
 using UnityEngine;
 
 // TODO: need to seperate stats with actor control
@@ -12,8 +13,6 @@ public class Character : MonoBehaviour
 	public int MaxHP = 100;
 	[SerializeField]
 	public int Damage = 10;
-	[SerializeField]
-	public int RageDamage = 20;
 	[SerializeField]
 	private float HeavyDmgThreshold = 0.2f;
 
@@ -35,11 +34,13 @@ public class Character : MonoBehaviour
 	private int currentHP = 0;
 	private bool SinkBody = false;
 	private float lastCombatTime = 0f;
+	private AnimationState moveType = AnimationState.Walking;
 
 	public event Func<Character, bool> OnAttack;
 	public event Action OnEnterCombat;
 	public event Action<int, float> OnDamaged;
 	public event Action OnOutOfCombat;
+	public event Action<Character> OnFinishTarget;
 	public event Action<Character> OnDie;
 
 	private bool IsMovable
@@ -116,6 +117,19 @@ public class Character : MonoBehaviour
 		}
 	}
 
+	public void FinishMove()
+	{
+		//animator.SetTrigger(AnimationStateTrigger.FinishDevour.ToString());
+	}
+
+	public void SetMoveType(AnimationState type)
+	{
+		if (type != AnimationState.Walking || type != AnimationState.Running)
+			return;
+
+		moveType = type;
+	}
+
 	#region Animation Event
 
 	public void AttackEvent()
@@ -138,7 +152,7 @@ public class Character : MonoBehaviour
 
 	#endregion
 
-	public void OnAttacked(int damage)
+	public void OnAttacked(Character attacker, int damage)
 	{
 		//var smr = transform.GetChild(2).GetComponent<SkinnedMeshRenderer>();
 		//smr.materials[0].color = Color.red;
@@ -147,6 +161,7 @@ public class Character : MonoBehaviour
 		if (CurrentHP <= 0)
 		{
 			CurrentHP = 0;
+			attacker.OnFinishTarget?.Invoke(this);
 		}
 		else
 		{
@@ -180,5 +195,18 @@ public class Character : MonoBehaviour
 		Destroy(gameObject);
 		OnDie?.Invoke(this);
 		lastCombatTime = 0f;
+	}
+
+	public void SetMoveAniamtionSpeed(float times)
+	{
+		AnimatorController animatorController = animator.runtimeAnimatorController as AnimatorController;
+		foreach (var s in animatorController.layers[0].stateMachine.states)
+		{
+			AnimatorState state = s.state;
+			if (state.name == "Walk")
+			{
+				state.speed *= times;
+			}
+		}
 	}
 }
