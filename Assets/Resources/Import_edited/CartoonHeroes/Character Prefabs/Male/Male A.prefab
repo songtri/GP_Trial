@@ -2852,6 +2852,7 @@ GameObject:
   - component: {fileID: 4927973787200604}
   - component: {fileID: 95844511793012932}
   - component: {fileID: -5953594369552634105}
+  - component: {fileID: -5707840506745133449}
   - component: {fileID: 114380782822982968}
   m_Layer: 0
   m_Name: Male A
@@ -2912,9 +2913,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MoveSpeed: 2
-  HP: 100
+  MaxHP: 100
   Damage: 10
   RageDamage: 20
+  HeavyDmgThreshold: 0.2
+  Brain: {fileID: 0}
+--- !u!114 &-5707840506745133449
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1668188202801692}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb243cdbc2491a144a8a0b35a9437ef1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &114380782822982968
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -4737,7 +4737,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CharacterPrefab: {fileID: 1668188202801692, guid: 3feb707e2bfdcc14d86b80b1bb50d4c5,
     type: 3}
-  EnemyPrefab: {fileID: 1804324718265296, guid: ef30473aeeecdd548baad940b25735ac,
+  EnemyPrefab: {fileID: 1804324718265296, guid: f94c6692ec4f68b4db089dab8cf937d4,
     type: 3}
   MaxEnemy: 3
   EnemySpawnPoints: {fileID: 1666264062}

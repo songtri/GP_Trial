@@ -52,6 +52,9 @@ public class GameController : MonoBehaviour
 			var tr = EnemySpawnPoints.transform.GetChild(i);
 			enemySpawnPoints.Add(tr);
 		}
+
+		WorldInfo.instance.MainPlayer = mainPlayer;
+		WorldInfo.instance.EnemyList = enemyList;
 	}
 
 	bool CheckAttackRange(Vector3 from, Vector3 to)
@@ -111,13 +114,13 @@ public class GameController : MonoBehaviour
 
 			if (Input.GetMouseButtonDown(0))
 			{
-				mainPlayer.Attack(0);
+				mainPlayer.Attack(Player.instance.GetAttack(0));
 			}
 			if (Input.GetMouseButtonDown(1))
-				mainPlayer.Attack(1);
+				mainPlayer.Attack(Player.instance.GetAttack(1));
 
 			float xAngle = Input.GetAxis("Mouse X");
-			mainPlayer.Rotate(xAngle);
+			mainPlayer.Rotate(xAngle * 1.5f);
 			//mainCamera.transform.Rotate(0f, xAngle * 1.5f, 0f);
 		}
 	}

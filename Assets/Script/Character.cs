@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// TODO: need to seperate stats with actor control
 public class Character : MonoBehaviour
 {
-	private Animator animator;
 	[SerializeField]
 	public int MoveSpeed = 2;
 	[SerializeField]
@@ -16,6 +16,8 @@ public class Character : MonoBehaviour
 	public int RageDamage = 20;
 	[SerializeField]
 	private float HeavyDmgThreshold = 0.2f;
+
+	private Animator animator;
 
 	private const float BodyRemoveWaitTime = 3f;
 
@@ -92,12 +94,11 @@ public class Character : MonoBehaviour
 
 	public void Rotate(float xAngle)
 	{
-		transform.Rotate(0f, xAngle * 1.5f, 0f);
+		transform.Rotate(0f, xAngle, 0f);
 	}
 
-	public void Attack(int button)
+	public void Attack(AttackType type)
 	{
-		AttackType type = Player.instance.GetAttack(button);
 		switch (type)
 		{
 			case AttackType.Slash:
