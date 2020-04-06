@@ -32,8 +32,12 @@ public class Character : MonoBehaviour
 	}
 	private int currentHP = 0;
 	private bool SinkBody = false;
+	private float lastCombatTime = 0f;
 
-	public event Action<Character> OnAttack;
+	public event Func<Character, bool> OnAttack;
+	public event Action OnEnterCombat;
+	public event Action<int, float> OnDamaged;
+	public event Action OnOutOfCombat;
 	public event Action<Character> OnDie;
 
 	private bool IsMovable
@@ -45,10 +49,14 @@ public class Character : MonoBehaviour
 		}
 	}
 
+	public Character()
+	{
+		CurrentHP = MaxHP;
+	}
+
 	private void Start()
 	{
 		animator = GetComponent<Animator>();
-		CurrentHP = MaxHP;
 	}
 
 	private void Update()
@@ -57,6 +65,11 @@ public class Character : MonoBehaviour
 		{
 			transform.localPosition -= new Vector3(0f, Time.deltaTime / 3f, 0f);
 		}
+
+		lastCombatTime += Time.deltaTime;
+		//Debug.Log("LastCombatTime: " + lastCombatTime);
+		if (lastCombatTime > Player.minSecondToBeOutOfCombat)
+			OnOutOfCombat?.Invoke();
 	}
 
 	public void Move(Vector2 direction, bool move)
@@ -82,12 +95,24 @@ public class Character : MonoBehaviour
 		transform.Rotate(0f, xAngle * 1.5f, 0f);
 	}
 
-	public void Attack(int attackType)
+	public void Attack(int button)
 	{
-		if (attackType == 0)
-			animator.SetTrigger(AnimationStateTrigger.SlashAttack.ToString());
-		else
-			animator.SetTrigger(AnimationStateTrigger.BluntAttack.ToString());
+		AttackType type = Player.instance.GetAttack(button);
+		switch (type)
+		{
+			case AttackType.Slash:
+				animator.SetTrigger(AnimationStateTrigger.SlashAttack.ToString());
+				break;
+			case AttackType.Blunt:
+				animator.SetTrigger(AnimationStateTrigger.BluntAttack.ToString());
+				break;
+			case AttackType.Pierce:
+				animator.SetTrigger(AnimationStateTrigger.PierceAttack.ToString());
+				break;
+			case AttackType.Max:
+			default:
+				break;
+		}
 	}
 
 	#region Animation Event
@@ -96,7 +121,13 @@ public class Character : MonoBehaviour
 	{
 		//Debug.Log("Animation Hit");
 		// check collision
-		OnAttack?.Invoke(this);
+		bool hitTarget = OnAttack?.Invoke(this) ?? false;
+		if (hitTarget)
+		{
+			if (lastCombatTime >= Player.minSecondToBeOutOfCombat)
+				OnEnterCombat?.Invoke();
+			lastCombatTime = 0f;
+		}
 	}
 
 	public void StartSinkEvent()
@@ -111,18 +142,22 @@ public class Character : MonoBehaviour
 		//var smr = transform.GetChild(2).GetComponent<SkinnedMeshRenderer>();
 		//smr.materials[0].color = Color.red;
 		CurrentHP -= damage;
+		float dmgRatio = (float)damage / MaxHP;
 		if (CurrentHP <= 0)
 		{
 			CurrentHP = 0;
 		}
 		else
 		{
-			float dmgRatio = (float)damage / MaxHP;
 			if (dmgRatio >= HeavyDmgThreshold)
 				animator.SetTrigger(AnimationStateTrigger.HitByAttackerHeavy.ToString());
 			else
 				animator.SetTrigger(AnimationStateTrigger.HitByAttacker.ToString());
 		}
+		OnDamaged?.Invoke(damage, dmgRatio);
+		if (lastCombatTime >= Player.minSecondToBeOutOfCombat)
+			OnEnterCombat?.Invoke();
+		lastCombatTime = 0f;
 	}
 
 	private void PrepareDie()
@@ -143,5 +178,6 @@ public class Character : MonoBehaviour
 
 		Destroy(gameObject);
 		OnDie?.Invoke(this);
+		lastCombatTime = 0f;
 	}
 }

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class GameController : MonoBehaviour
 {
@@ -19,6 +20,9 @@ public class GameController : MonoBehaviour
 	[SerializeField]
 	private Camera mainCamera = null;
 	[SerializeField]
+	private UICombat UICombat = null;
+
+	[SerializeField]
 	private Vector3 cameraPosToPlayer = new Vector3(0f, 2f, -2.4f);
 
 	private Character mainPlayer = null;
@@ -31,7 +35,11 @@ public class GameController : MonoBehaviour
 		GameObject go = Instantiate(CharacterPrefab);
 		mainPlayer = go.GetComponent<Character>();
 		mainPlayer.OnAttack += MainPlayer_OnAttack;
+		mainPlayer.OnEnterCombat += Player.instance.OnEnterCombat;
+		mainPlayer.OnDamaged += MainPlayer_OnDamaged;
+		mainPlayer.OnOutOfCombat += Player.instance.OnOutOfCombat;
 		mainPlayer.OnDie += MainPlayer_OnDie;
+		Player.instance.HP = mainPlayer.CurrentHP;
 
 		mainCamera.transform.parent = mainPlayer.transform;
 		mainCamera.transform.localPosition = /*mainPlayer.transform.position + */cameraPosToPlayer;
@@ -60,6 +68,7 @@ public class GameController : MonoBehaviour
 
 	private void Update()
 	{
+		Player.instance.Update(Time.deltaTime);
 		UpdateCamera();
 		CheckInput();
 
@@ -75,39 +84,42 @@ public class GameController : MonoBehaviour
 
 	private void CheckInput()
 	{
-		int forwardMove = 0;
-		int sideMove = 0;
-		if (Input.GetKey(KeyCode.W))
-			forwardMove = 1;
-		else if (Input.GetKeyUp(KeyCode.W))
-			forwardMove = 0;
-		if (Input.GetKey(KeyCode.A))
-			sideMove = -1;
-		else if (Input.GetKeyUp(KeyCode.A))
-			sideMove = 0;
-		if (Input.GetKey(KeyCode.S))
-			forwardMove = -1;
-		else if (Input.GetKeyUp(KeyCode.S))
-			forwardMove = 0;
-		if (Input.GetKey(KeyCode.D))
-			sideMove = 1;
-		else if (Input.GetKeyUp(KeyCode.D))
-			sideMove = 0;
-
-		Vector2 direction = new Vector2(forwardMove, sideMove);
-		bool move = forwardMove != 0 || sideMove != 0;
-		mainPlayer.Move(direction, move);
-
-		if (Input.GetMouseButtonDown(0))
+		if (!EventSystem.current.IsPointerOverGameObject())
 		{
-			mainPlayer.Attack(0);
-		}
-		if (Input.GetMouseButtonDown(1))
-			mainPlayer.Attack(1);
+			int forwardMove = 0;
+			int sideMove = 0;
+			if (Input.GetKey(KeyCode.W))
+				forwardMove = 1;
+			else if (Input.GetKeyUp(KeyCode.W))
+				forwardMove = 0;
+			if (Input.GetKey(KeyCode.A))
+				sideMove = -1;
+			else if (Input.GetKeyUp(KeyCode.A))
+				sideMove = 0;
+			if (Input.GetKey(KeyCode.S))
+				forwardMove = -1;
+			else if (Input.GetKeyUp(KeyCode.S))
+				forwardMove = 0;
+			if (Input.GetKey(KeyCode.D))
+				sideMove = 1;
+			else if (Input.GetKeyUp(KeyCode.D))
+				sideMove = 0;
 
-		float xAngle = Input.GetAxis("Mouse X");
-		mainPlayer.Rotate(xAngle);
-		//mainCamera.transform.Rotate(0f, xAngle * 1.5f, 0f);
+			Vector2 direction = new Vector2(forwardMove, sideMove);
+			bool move = forwardMove != 0 || sideMove != 0;
+			mainPlayer.Move(direction, move);
+
+			if (Input.GetMouseButtonDown(0))
+			{
+				mainPlayer.Attack(0);
+			}
+			if (Input.GetMouseButtonDown(1))
+				mainPlayer.Attack(1);
+
+			float xAngle = Input.GetAxis("Mouse X");
+			mainPlayer.Rotate(xAngle);
+			//mainCamera.transform.Rotate(0f, xAngle * 1.5f, 0f);
+		}
 	}
 
 	private void CreateEnemy()
@@ -125,24 +137,40 @@ public class GameController : MonoBehaviour
 
 	#region Event Handlers
 
-	private void MainPlayer_OnAttack(Character obj)
+	private bool MainPlayer_OnAttack(Character obj)
 	{
 		foreach (var monster in enemyList)
 		{
 			if (!monster.IsDead && CheckAttackRange(mainPlayer.transform.position, monster.transform.position))
+			{
 				monster.OnAttacked(obj.Damage);
+				Player.instance.OnAttack();
+				return true;
+			}
 		}
+
+		return false;
+	}
+
+	private void MainPlayer_OnDamaged(int damage, float ratio)
+	{
+		Player.instance.OnDamaged(damage, ratio);
 	}
 
 	private void MainPlayer_OnDie(Character obj)
 	{
-		//throw new NotImplementedException();
+		Player.instance.OnDie();
 	}
 
-	private void Enemy_OnAttack(Character obj)
+	private bool Enemy_OnAttack(Character obj)
 	{
 		if (CheckAttackRange(obj.transform.position, mainPlayer.transform.position))
+		{
 			mainPlayer.OnAttacked(obj.Damage);
+			return true;
+		}
+
+		return false;
 	}
 
 	private void Enemy_OnDie(Character obj)
