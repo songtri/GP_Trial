@@ -8,6 +8,10 @@ using UnityEngine;
 public class Character : MonoBehaviour
 {
 	[SerializeField]
+	public float Radius = 0.5f;
+	[SerializeField]
+	public float AttackRange = 0.5f;
+	[SerializeField]
 	public int MoveSpeed = 2;
 	[SerializeField]
 	public int MaxHP = 100;
@@ -87,7 +91,9 @@ public class Character : MonoBehaviour
 			else if(direction.y != 0)
 				movement = new Vector3(forward.z * direction.y, 0f, - forward.x * direction.y) * Time.deltaTime;
 			//Debug.Log($"movement : {movement.x}, {movement.y}, {movement.z}");
-			transform.localPosition += movement * MoveSpeed;
+			var actualMovement = movement * MoveSpeed;
+			if (!CharacterManager.Instance.CheckCollisionWithOtherCharacter(this, actualMovement))
+				transform.localPosition += actualMovement;
 		}
 		animator.SetBool(AnimationState.Walking.ToString(), move);
 		//animator.SetTrigger(AnimationStateTrigger.AttackCancel.ToString());
@@ -192,7 +198,6 @@ public class Character : MonoBehaviour
 			yield return null;
 		}
 
-		Destroy(gameObject);
 		OnDie?.Invoke(this);
 		lastCombatTime = 0f;
 	}

@@ -12,7 +12,7 @@ public class BerserkAI : AIComponent
 		Vector3 playerToEnemy = Vector3.zero;
 		float sqrShortest = float.MaxValue;
 		Character nearestEnemy = null;
-		foreach (var enemy in WorldInfo.instance.EnemyList)
+		foreach (var enemy in CharacterManager.Instance.EnemyList)
 		{
 			playerToEnemy = enemy.transform.position - Character.transform.position;
 			if (sqrShortest > playerToEnemy.sqrMagnitude)

@@ -37,7 +37,7 @@ public class Player
 	private bool IsOutOfCombat = true;
 	public bool IsInBerserkerState = false;
 
-	private const int rageGainPerAttack = 500;
+	private const int rageGainPerAttack = 50;
 	private const int rageGainPerAttacked = 50;
 	private const int rageGainPerLostHpRatio = 23;   // gain per 1% hp loss
 	private const float minLostHpRatioToGainRage = 5;

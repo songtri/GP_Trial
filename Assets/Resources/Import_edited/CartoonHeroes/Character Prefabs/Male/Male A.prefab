@@ -2912,6 +2912,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 627dcb21f71783d46950587668a5c715, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Radius: 0.35
   MoveSpeed: 2
   MaxHP: 100
   Damage: 10

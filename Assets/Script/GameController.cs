@@ -7,69 +7,27 @@ using UnityEngine.EventSystems;
 public class GameController : MonoBehaviour
 {
 	[SerializeField]
-	private GameObject CharacterPrefab = null;
-	[SerializeField]
-	private GameObject EnemyPrefab = null;
-	[SerializeField]
-	private int MaxEnemy = 3;
-	[SerializeField]
-	private GameObject EnemySpawnPoints = null;
-	[SerializeField]
-	private Transform EnemyObjectRoot = null;
-
-	[SerializeField]
 	private Camera mainCamera = null;
 	[SerializeField]
 	private UICombat UICombat = null;
+	[SerializeField]
+	private CharacterManager characterManager = null;
 
+	[SerializeField]
+	private int MaxEnemy = 3;
 	[SerializeField]
 	private Vector3 cameraPosToPlayer = new Vector3(0f, 2f, -2.4f);
 
 	private Character mainPlayer = null;
-	private List<Character> enemyList = new List<Character>();
-	private List<Transform> enemySpawnPoints = new List<Transform>();
-	private int currentEnemySpawnIndex = 0;
 
 	private void Start()
 	{
-		GameObject go = Instantiate(CharacterPrefab);
-		mainPlayer = go.GetComponent<Character>();
-		mainPlayer.OnAttack += MainPlayer_OnAttack;
-		mainPlayer.OnEnterCombat += Player.instance.OnEnterCombat;
-		mainPlayer.OnDamaged += MainPlayer_OnDamaged;
-		mainPlayer.OnOutOfCombat += Player.instance.OnOutOfCombat;
-		mainPlayer.OnFinishTarget += MainPlayer_OnFinishTarget;
-		mainPlayer.OnDie += MainPlayer_OnDie;
-		Player.instance.HP = mainPlayer.CurrentHP;
-		Player.instance.OnBerserkStateStarted += Instance_OnBerserkStateStarted;
-		Player.instance.OnBerserkStateEnded += Instance_OnBerserkStateEnded;
+		mainPlayer = characterManager.CreateMainPlayer();
 
 		mainCamera.transform.parent = mainPlayer.transform;
 		mainCamera.transform.localPosition = /*mainPlayer.transform.position + */cameraPosToPlayer;
 		mainCamera.transform.forward = mainPlayer.transform.forward;
 		mainCamera.transform.Rotate(7f, 0f, 0f);
-
-		enemySpawnPoints.Clear();
-		for (int i = 0; i < EnemySpawnPoints.transform.childCount; ++i)
-		{
-			var tr = EnemySpawnPoints.transform.GetChild(i);
-			enemySpawnPoints.Add(tr);
-		}
-
-		WorldInfo.instance.MainPlayer = mainPlayer;
-		WorldInfo.instance.EnemyList = enemyList;
-	}
-
-	bool CheckAttackRange(Vector3 from, Vector3 to)
-	{
-		var distVec = to - from;
-		if (distVec.sqrMagnitude < 2.25 && Vector3.Dot(distVec, mainPlayer.transform.forward) > 0)
-		{
-			//Debug.Log($"{mainPlayer.name} collides with {monster.name}");
-			return true;
-		}
-
-		return false;
 	}
 
 	private void Update()
@@ -79,8 +37,8 @@ public class GameController : MonoBehaviour
 		UpdateCamera();
 		CheckInput();
 
-		if (enemyList.Count < MaxEnemy)
-			CreateEnemy();
+		if (characterManager.GetEnemyCount() < MaxEnemy)
+			characterManager.CreateEnemy();
 	}
 
 	private void UpdateCamera()
@@ -128,75 +86,4 @@ public class GameController : MonoBehaviour
 		}
 	}
 
-	private void CreateEnemy()
-	{
-		// TODO: use object pooling for more performance
-		GameObject go = Instantiate(EnemyPrefab, EnemyObjectRoot);
-		var enemy = go.GetComponent<Character>();
-		enemy.OnAttack += Enemy_OnAttack;
-		enemy.OnDie += Enemy_OnDie;
-		enemy.transform.position = enemySpawnPoints[currentEnemySpawnIndex++].position;
-		if (currentEnemySpawnIndex >= enemySpawnPoints.Count)
-			currentEnemySpawnIndex = 0;
-		enemyList.Add(enemy);
-	}
-
-	#region Event Handlers
-
-	private bool MainPlayer_OnAttack(Character obj)
-	{
-		foreach (var monster in enemyList)
-		{
-			if (!monster.IsDead && CheckAttackRange(mainPlayer.transform.position, monster.transform.position))
-			{
-				monster.OnAttacked(monster, Player.instance.GetCurrentDamage(obj.Damage));
-				Player.instance.OnAttack();
-			}
-		}
-
-		return false;
-	}
-
-	private void MainPlayer_OnDamaged(int damage, float ratio)
-	{
-		Player.instance.OnDamaged(damage, ratio);
-	}
-
-	private void MainPlayer_OnFinishTarget(Character obj)
-	{
-		throw new NotImplementedException();
-	}
-
-	private void Instance_OnBerserkStateStarted()
-	{
-		mainPlayer.SetMoveType(AnimationState.Running);
-	}
-
-	private void Instance_OnBerserkStateEnded()
-	{
-		mainPlayer.SetMoveType(AnimationState.Walking);
-	}
-
-	private void MainPlayer_OnDie(Character obj)
-	{
-		Player.instance.OnDie();
-	}
-
-	private bool Enemy_OnAttack(Character obj)
-	{
-		if (CheckAttackRange(obj.transform.position, mainPlayer.transform.position))
-		{
-			mainPlayer.OnAttacked(mainPlayer, obj.Damage);
-			return true;
-		}
-
-		return false;
-	}
-
-	private void Enemy_OnDie(Character obj)
-	{
-		enemyList.Remove(obj);
-	}
-
-	#endregion
 }
