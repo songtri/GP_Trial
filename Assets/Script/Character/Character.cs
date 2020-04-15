@@ -8,34 +8,24 @@ using UnityEngine;
 public class Character : MonoBehaviour
 {
 	[SerializeField]
-	public float Radius = 0.5f;
-	[SerializeField]
-	public float AttackRange = 0.5f;
-	[SerializeField]
-	public int MoveSpeed = 2;
-	[SerializeField]
-	public int MaxHP = 100;
-	[SerializeField]
-	public int Damage = 10;
-	[SerializeField]
 	private float HeavyDmgThreshold = 0.2f;
 
+	[HideInInspector]
+	public CharacterStats Stats;
 	private Animator animator;
 
 	private const float BodyRemoveWaitTime = 3f;
 
-	public bool IsDead { get => CurrentHP <= 0; }
 	public int CurrentHP
 	{
-		get => currentHP;
+		get => Stats?.CurrentHP ?? 0;
 		set
 		{
-			currentHP = value;
+			Stats.CurrentHP = value;
 			if (value <= 0)
 				PrepareDie();
 		}
 	}
-	private int currentHP = 0;
 	private bool SinkBody = false;
 	private float lastCombatTime = 0f;
 	private AnimationState moveType = AnimationState.Walking;
@@ -58,12 +48,16 @@ public class Character : MonoBehaviour
 
 	public Character()
 	{
-		CurrentHP = MaxHP;
 	}
 
 	private void Start()
 	{
+		Stats = GetComponent<CharacterStats>();
+		if (Stats == null)
+			throw new MissingComponentException("Characterstat");
 		animator = GetComponent<Animator>();
+		if (animator == null)
+			throw new MissingComponentException("Animator");
 	}
 
 	private void Update()
@@ -91,7 +85,7 @@ public class Character : MonoBehaviour
 			else if(direction.y != 0)
 				movement = new Vector3(forward.z * direction.y, 0f, - forward.x * direction.y) * Time.deltaTime;
 			//Debug.Log($"movement : {movement.x}, {movement.y}, {movement.z}");
-			var actualMovement = movement * MoveSpeed;
+			var actualMovement = movement * Stats.MoveSpeed;
 			if (!CharacterManager.Instance.CheckCollisionWithOtherCharacter(this, actualMovement))
 				transform.localPosition += actualMovement;
 		}
@@ -123,9 +117,25 @@ public class Character : MonoBehaviour
 		}
 	}
 
-	public void FinishMove()
+	public void FinishMove(int type)
 	{
-		//animator.SetTrigger(AnimationStateTrigger.FinishDevour.ToString());
+		if (type == 1)
+		{
+			animator.SetTrigger(AnimationStateTrigger.FinalBlowA.ToString());
+			transform.localScale *= 1.2f;
+		}
+		else if (type == 2)
+		{
+			animator.SetTrigger(AnimationStateTrigger.FinalBlowB.ToString());
+			//var weapon = transform.Find("Sword_3");
+			//var smr = weapon?.GetComponent<SkinnedMeshRenderer>();
+			//if (smr != null)
+			//{
+			//	Color color = smr.materials[0].color;
+			//	smr.materials[0].color = new Color(color.r * 1.2f, color.g, color.b);
+			//}
+		}
+		Stats.Damage += 10;
 	}
 
 	public void SetMoveType(AnimationState type)
@@ -163,7 +173,7 @@ public class Character : MonoBehaviour
 		//var smr = transform.GetChild(2).GetComponent<SkinnedMeshRenderer>();
 		//smr.materials[0].color = Color.red;
 		CurrentHP -= damage;
-		float dmgRatio = (float)damage / MaxHP;
+		float dmgRatio = (float)damage / Stats.MaxHP;
 		if (CurrentHP <= 0)
 		{
 			CurrentHP = 0;

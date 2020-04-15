@@ -83,7 +83,7 @@ public class CharacterManager : MonoBehaviour
 	private bool CheckAttackRange(Character from, Character to)
 	{
 		var distVec = to.transform.position - from.transform.position;
-		if (distVec.sqrMagnitude < (from.AttackRange + to.Radius) && Vector3.Dot(distVec, mainPlayer.transform.forward) > 0)
+		if (distVec.sqrMagnitude < (from.Stats.AttackRange + to.Stats.Radius) && Vector3.Dot(distVec, mainPlayer.transform.forward) > 0)
 		{
 			//Debug.Log($"{mainPlayer.name} collides with {monster.name}");
 			return true;
@@ -101,7 +101,7 @@ public class CharacterManager : MonoBehaviour
 				continue;
 
 			var diff = dest - c.transform.position;
-			if (diff.sqrMagnitude < character.Radius + c.Radius)
+			if (diff.sqrMagnitude < character.Stats.Radius + c.Stats.Radius)
 				return true;
 		}
 
@@ -119,9 +119,9 @@ public class CharacterManager : MonoBehaviour
 	{
 		foreach (var monster in enemyList)
 		{
-			if (!monster.IsDead && CheckAttackRange(mainPlayer, monster))
+			if (!monster.Stats.IsDead && CheckAttackRange(mainPlayer, monster))
 			{
-				monster.OnAttacked(monster, Player.instance.GetCurrentDamage(obj.Damage));
+				monster.OnAttacked(obj, Player.instance.GetCurrentDamage(obj.Stats.Damage));
 				Player.instance.OnAttack();
 			}
 		}
@@ -136,7 +136,7 @@ public class CharacterManager : MonoBehaviour
 
 	private void MainPlayer_OnFinishTarget(Character obj)
 	{
-		throw new NotImplementedException();
+		//throw new NotImplementedException();
 	}
 
 	private void Instance_OnBerserkStateStarted()
@@ -158,7 +158,7 @@ public class CharacterManager : MonoBehaviour
 	{
 		if (CheckAttackRange(obj, mainPlayer))
 		{
-			mainPlayer.OnAttacked(mainPlayer, obj.Damage);
+			mainPlayer.OnAttacked(obj, obj.Stats.Damage);
 			return true;
 		}
 

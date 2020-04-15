@@ -12,6 +12,8 @@ public class UICombat : MonoBehaviour
 	[SerializeField]
 	private Text PlayerHP = null;
 	[SerializeField]
+	private GameObject FinalBlowGroup = null;
+	[SerializeField]
 	private UIDialog DialogCharacterSkill = null;
 	[SerializeField]
 	private UIDialog DialogQuestLog = null;
@@ -29,6 +31,7 @@ public class UICombat : MonoBehaviour
 		PlayerRage.value = Player.instance.Rage;
 		PlayerRage.maxValue = Player.instance.MaxRage;
 		PlayerHP.text = string.Format(HpFormat, Player.instance.HP);
+		ShowFinalBlowNotice(false);
 		DialogCharacterSkill.gameObject.SetActive(false);
 		DialogQuestLog.gameObject.SetActive(false);
 		CharacterDialogOpened.SetActive(false);
@@ -49,9 +52,14 @@ public class UICombat : MonoBehaviour
 		CharacterDialogOpened.SetActive(DialogCharacterSkill.gameObject.activeInHierarchy);
 	}
 
-	public void OnClickQuest()
+	public void OnClickQuestLog()
 	{
 		DialogQuestLog.gameObject.SetActive(!DialogQuestLog.gameObject.activeInHierarchy);
 		QuestDialogOpened.SetActive(DialogQuestLog.gameObject.activeInHierarchy);
+	}
+
+	public void ShowFinalBlowNotice(bool show)
+	{
+		FinalBlowGroup.SetActive(show);
 	}
 }

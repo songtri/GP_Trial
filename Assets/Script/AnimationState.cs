@@ -17,7 +17,7 @@ public enum AnimationStateTrigger
 	HitByAttacker,
 	HitByAttackerHeavy,
 	AttackCancel,
-	FinishDevour,
-	FinishHaul,
+	FinalBlowA,
+	FinalBlowB,
 	Die
 }

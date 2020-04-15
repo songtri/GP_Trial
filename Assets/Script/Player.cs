@@ -36,6 +36,7 @@ public class Player
 	public int MaxRage = 1000;
 	private bool IsOutOfCombat = true;
 	public bool IsInBerserkerState = false;
+	public bool CanUseFinalBlow = false;
 
 	private const int rageGainPerAttack = 50;
 	private const int rageGainPerAttacked = 50;

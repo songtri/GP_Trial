@@ -23,6 +23,7 @@ public class GameController : MonoBehaviour
 	private void Start()
 	{
 		mainPlayer = characterManager.CreateMainPlayer();
+		mainPlayer.OnFinishTarget += MainPlayer_OnFinishTarget;
 
 		mainCamera.transform.parent = mainPlayer.transform;
 		mainCamera.transform.localPosition = /*mainPlayer.transform.position + */cameraPosToPlayer;
@@ -49,27 +50,52 @@ public class GameController : MonoBehaviour
 
 	private void CheckInput()
 	{
+		if (Input.GetKeyUp(KeyCode.C))
+		{
+			UICombat.OnClickCharacter();
+			return;
+		}
+		else if (Input.GetKeyUp(KeyCode.L))
+		{
+			UICombat.OnClickQuestLog();
+			return;
+		}
+
+		if (Player.instance.CanUseFinalBlow)
+		{
+			if (Input.GetKeyUp(KeyCode.Q))
+			{
+				mainPlayer.FinishMove(1);
+				return;
+			}
+			else if (Input.GetKeyUp(KeyCode.E))
+			{
+				mainPlayer.FinishMove(2);
+				return;
+			}
+		}
+
+		int forwardMove = 0;
+		int sideMove = 0;
+		if (Input.GetKey(KeyCode.W))
+			forwardMove = 1;
+		else if (Input.GetKeyUp(KeyCode.W))
+			forwardMove = 0;
+		if (Input.GetKey(KeyCode.A))
+			sideMove = -1;
+		else if (Input.GetKeyUp(KeyCode.A))
+			sideMove = 0;
+		if (Input.GetKey(KeyCode.S))
+			forwardMove = -1;
+		else if (Input.GetKeyUp(KeyCode.S))
+			forwardMove = 0;
+		if (Input.GetKey(KeyCode.D))
+			sideMove = 1;
+		else if (Input.GetKeyUp(KeyCode.D))
+			sideMove = 0;
+
 		if (!EventSystem.current.IsPointerOverGameObject() && !Player.instance.IsInBerserkerState)
 		{
-			int forwardMove = 0;
-			int sideMove = 0;
-			if (Input.GetKey(KeyCode.W))
-				forwardMove = 1;
-			else if (Input.GetKeyUp(KeyCode.W))
-				forwardMove = 0;
-			if (Input.GetKey(KeyCode.A))
-				sideMove = -1;
-			else if (Input.GetKeyUp(KeyCode.A))
-				sideMove = 0;
-			if (Input.GetKey(KeyCode.S))
-				forwardMove = -1;
-			else if (Input.GetKeyUp(KeyCode.S))
-				forwardMove = 0;
-			if (Input.GetKey(KeyCode.D))
-				sideMove = 1;
-			else if (Input.GetKeyUp(KeyCode.D))
-				sideMove = 0;
-
 			Vector2 direction = new Vector2(forwardMove, sideMove);
 			bool move = forwardMove != 0 || sideMove != 0;
 			mainPlayer.Move(direction, move);
@@ -86,4 +112,19 @@ public class GameController : MonoBehaviour
 		}
 	}
 
+	private void MainPlayer_OnFinishTarget(Character obj)
+	{
+		StartCoroutine(ShowFinalBlowUI());
+	}
+
+	private IEnumerator ShowFinalBlowUI()
+	{
+		Player.instance.CanUseFinalBlow = true;
+		UICombat.ShowFinalBlowNotice(true);
+
+		yield return new WaitForSeconds(1f);
+
+		Player.instance.CanUseFinalBlow = false;
+		UICombat.ShowFinalBlowNotice(false);
+	}
 }
