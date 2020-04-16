@@ -30,20 +30,22 @@ public class Player
 		internal static readonly Player instance = new Player();
 	}
 
+	public int RageInt => (int)Rage;
+
 	private AttackType[] Attack = new AttackType[2];
 	public int HP = 0;
-	public int Rage = 0;
-	public int MaxRage = 1000;
+	public float Rage = 900;
+	public float MaxRage = 1000;
 	private bool IsOutOfCombat = true;
 	public bool IsInBerserkerState = false;
 	public bool CanUseFinalBlow = false;
 
-	private const int rageGainPerAttack = 50;
-	private const int rageGainPerAttacked = 50;
-	private const int rageGainPerLostHpRatio = 23;   // gain per 1% hp loss
+	private const float rageGainPerAttack = 50;
+	private const float rageGainPerAttacked = 50;
+	private const float rageGainPerLostHpRatio = 23;   // gain per 1% hp loss
 	private const float minLostHpRatioToGainRage = 5;
-	private const int rageLossPerSecondOutOfCombat = 100;
-	private const int rageLossInBerserkState = 200; // determines how long berserk state will last
+	private const float rageLossPerSecondOutOfCombat = 100;
+	private const float rageLossInBerserkState = 200; // determines how long berserk state will last
 	public const float minSecondToBeOutOfCombat = 2f;
 
 	public const float moveSpeedBonusMultipliedInBerserk = 2f;
@@ -83,12 +85,12 @@ public class Player
 		//Debug.Log("Player.Update: " + delta);
 		if (IsInBerserkerState)
 		{
-			Rage -= (int)(rageLossInBerserkState * delta);
+			Rage -= rageLossInBerserkState * delta;
 		}
 		else if (IsOutOfCombat)
 		{
 			if (Rage >= 0)
-				Rage -= (int)(rageLossPerSecondOutOfCombat * delta);
+				Rage -= rageLossPerSecondOutOfCombat * delta;
 		}
 
 		if (Rage < 0)
@@ -112,6 +114,7 @@ public class Player
 
 	public void OnEnterCombat()
 	{
+		//Debug.Log("In Combat");
 		IsOutOfCombat = false;
 	}
 
@@ -128,6 +131,7 @@ public class Player
 
 	public void OnOutOfCombat()
 	{
+		//Debug.Log("Out of Combat");
 		IsOutOfCombat = true;
 	}
 

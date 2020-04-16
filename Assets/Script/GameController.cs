@@ -22,6 +22,9 @@ public class GameController : MonoBehaviour
 
 	private void Start()
 	{
+		Cursor.visible = false;
+		Cursor.lockState = CursorLockMode.Locked;
+
 		mainPlayer = characterManager.CreateMainPlayer();
 		mainPlayer.OnFinishTarget += MainPlayer_OnFinishTarget;
 

@@ -13,7 +13,12 @@ public class CharacterStats : MonoBehaviour
 
 	public bool IsDead => CurrentHP <= 0;
 
-	void Start()
+	private void Start()
+	{
+		InitStat();
+	}
+
+	public void InitStat()
 	{
 		CurrentHP = MaxHP;
 	}

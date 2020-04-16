@@ -19,5 +19,6 @@ public enum AnimationStateTrigger
 	AttackCancel,
 	FinalBlowA,
 	FinalBlowB,
-	Die
+	Die,
+	Init
 }

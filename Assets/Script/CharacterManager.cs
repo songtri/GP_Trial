@@ -53,7 +53,10 @@ public class CharacterManager : MonoBehaviour
 	{
 		Character character;
 		if (pooledCharacters.Count > 0)
+		{
 			character = pooledCharacters.Dequeue();
+			character.gameObject.SetActive(true);
+		}
 		else
 		{
 			GameObject go = Instantiate(prefab);
@@ -117,16 +120,18 @@ public class CharacterManager : MonoBehaviour
 
 	private bool MainPlayer_OnAttack(Character obj)
 	{
+		bool isTargetHit = false;
 		foreach (var monster in enemyList)
 		{
 			if (!monster.Stats.IsDead && CheckAttackRange(mainPlayer, monster))
 			{
 				monster.OnAttacked(obj, Player.instance.GetCurrentDamage(obj.Stats.Damage));
 				Player.instance.OnAttack();
+				isTargetHit = true;
 			}
 		}
 
-		return false;
+		return isTargetHit;
 	}
 
 	private void MainPlayer_OnDamaged(int damage, float ratio)
@@ -170,6 +175,8 @@ public class CharacterManager : MonoBehaviour
 		enemyList.Remove(obj);
 		activeCharacters.Remove(obj);
 		pooledCharacters.Enqueue(obj);
+		obj.gameObject.SetActive(false);
+		obj.Init();
 	}
 
 	#endregion

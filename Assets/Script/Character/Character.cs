@@ -46,11 +46,7 @@ public class Character : MonoBehaviour
 		}
 	}
 
-	public Character()
-	{
-	}
-
-	private void Start()
+	private void Awake()
 	{
 		Stats = GetComponent<CharacterStats>();
 		if (Stats == null)
@@ -67,10 +63,21 @@ public class Character : MonoBehaviour
 			transform.localPosition -= new Vector3(0f, Time.deltaTime / 3f, 0f);
 		}
 
-		lastCombatTime += Time.deltaTime;
+		if (lastCombatTime < Player.minSecondToBeOutOfCombat)
+		{
+			lastCombatTime += Time.deltaTime;
+			if (lastCombatTime >= Player.minSecondToBeOutOfCombat)
+				OnOutOfCombat?.Invoke();
+		}
 		//Debug.Log("LastCombatTime: " + lastCombatTime);
-		if (lastCombatTime > Player.minSecondToBeOutOfCombat)
-			OnOutOfCombat?.Invoke();
+	}
+
+	public void Init()
+	{
+		animator.SetTrigger(AnimationStateTrigger.Init.ToString());
+		Stats.InitStat();
+		transform.localScale = Vector3.one;
+		lastCombatTime = 0f;
 	}
 
 	public void Move(Vector2 direction, bool move)
@@ -209,7 +216,6 @@ public class Character : MonoBehaviour
 		}
 
 		OnDie?.Invoke(this);
-		lastCombatTime = 0f;
 	}
 
 	public void SetMoveAniamtionSpeed(float times)
