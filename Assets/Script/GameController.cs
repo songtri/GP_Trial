@@ -68,12 +68,12 @@ public class GameController : MonoBehaviour
 		{
 			if (Input.GetKeyUp(KeyCode.Q))
 			{
-				mainPlayer.FinishMove(1);
+				mainPlayer.FinishingBlow(1);
 				return;
 			}
 			else if (Input.GetKeyUp(KeyCode.E))
 			{
-				mainPlayer.FinishMove(2);
+				mainPlayer.FinishingBlow(2);
 				return;
 			}
 		}

@@ -86,9 +86,10 @@ public class CharacterManager : MonoBehaviour
 	private bool CheckAttackRange(Character from, Character to)
 	{
 		var distVec = to.transform.position - from.transform.position;
-		if (distVec.sqrMagnitude < (from.Stats.AttackRange + to.Stats.Radius) && Vector3.Dot(distVec, mainPlayer.transform.forward) > 0)
+		float attackRange = (from.Stats.AttackRange + to.Stats.Radius) * (from.Stats.AttackRange + to.Stats.Radius);
+		if (distVec.sqrMagnitude < attackRange && Vector3.Dot(distVec, from.transform.forward) > 0)
 		{
-			//Debug.Log($"{mainPlayer.name} collides with {monster.name}");
+			//Debug.Log($"{from.name} collides with {to.name}");
 			return true;
 		}
 
@@ -146,12 +147,12 @@ public class CharacterManager : MonoBehaviour
 
 	private void Instance_OnBerserkStateStarted()
 	{
-		mainPlayer.SetMoveType(AnimationState.Running);
+		mainPlayer.SetMoveType(AnimationState.Sprint);
 	}
 
 	private void Instance_OnBerserkStateEnded()
 	{
-		mainPlayer.SetMoveType(AnimationState.Walking);
+		mainPlayer.SetMoveType(AnimationState.Running);
 	}
 
 	private void MainPlayer_OnDie(Character obj)

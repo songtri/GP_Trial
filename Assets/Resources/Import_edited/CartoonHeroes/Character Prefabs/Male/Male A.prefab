@@ -2914,7 +2914,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HeavyDmgThreshold: 0.2
+  TurnSpeed: 90
+  IgnoreTurnSpeed: 1
   Stats: {fileID: 0}
+  MoveType: 1
 --- !u!114 &7960750508327273957
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2928,7 +2931,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Radius: 0.35
-  AttackRange: 0.5
+  AttackRange: 1.2
   MoveSpeed: 2
   MaxHP: 100
   CurrentHP: 0

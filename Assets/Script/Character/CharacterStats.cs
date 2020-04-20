@@ -6,7 +6,7 @@ public class CharacterStats : MonoBehaviour
 {
 	public float Radius = 0.5f;
 	public float AttackRange = 0.5f;
-	public int MoveSpeed = 2;
+	public float MoveSpeed = 2f;
 	public int MaxHP = 100;
 	public int CurrentHP = 0;
 	public int Damage = 10;

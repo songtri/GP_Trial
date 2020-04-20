@@ -1302,6 +1302,7 @@ GameObject:
   - component: {fileID: 4532250632830336}
   - component: {fileID: 95640976257318950}
   - component: {fileID: 4256951138655597923}
+  - component: {fileID: 2825558333259713428}
   - component: {fileID: 114100002708281306}
   m_Layer: 0
   m_Name: Male C
@@ -1361,9 +1362,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 627dcb21f71783d46950587668a5c715, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  HP: 100
+  HeavyDmgThreshold: 0.2
+  TurnSpeed: 90
+  IgnoreTurnSpeed: 1
+  Stats: {fileID: 0}
+  MoveType: 1
+--- !u!114 &2825558333259713428
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1253086935255656}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3592b975fb6d888448d72e85407191e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Radius: 0.35
+  AttackRange: 1.2
+  MoveSpeed: 2
+  MaxHP: 100
+  CurrentHP: 0
   Damage: 10
-  RageDamage: 20
 --- !u!114 &114100002708281306
 MonoBehaviour:
   m_ObjectHideFlags: 0

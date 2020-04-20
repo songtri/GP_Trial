@@ -34,7 +34,7 @@ public class Player
 
 	private AttackType[] Attack = new AttackType[2];
 	public int HP = 0;
-	public float Rage = 900;
+	public float Rage = 000;
 	public float MaxRage = 1000;
 	private bool IsOutOfCombat = true;
 	public bool IsInBerserkerState = false;

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BerserkAI : AIComponent
 {
-	public override void Think()
+	public override void Think(float delta)
 	{
 		if (!Player.instance.IsInBerserkerState)
 			return;

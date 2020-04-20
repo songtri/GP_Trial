@@ -17,8 +17,8 @@ abstract public class AIComponent : MonoBehaviour
 	private void Update()
 	{
 		if (Active)
-			Think();
+			Think(Time.deltaTime);
 	}
 
-	public abstract void Think();
+	public abstract void Think(float delta);
 }

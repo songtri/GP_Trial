@@ -4,37 +4,103 @@ using UnityEngine;
 
 public class EnemyAI : AIComponent
 {
-	private int thinkPeriod = 0;
+	public enum EnemyAiType
+	{
+		StandStill,
+		GuardArea,
+		RoamSlow,
+		RoamFast,
+		SearchAndDestroy,
+	}
+
+	public EnemyAiType AiType = EnemyAiType.StandStill;
+	public float SightRange = 10f;
+	public float SightAngle = 120f;
+	public float AttackAngle = 120f;
+	public float MovePeriod = 3f;
+
+	private float movePeriod = 0;
 	private bool move = true;
 
-	public override void Think()
+	public override void Think(float delta)
 	{
-		//Vector3 selfToPlayer = CharacterManager.Instance.MainPlayer.transform.position - Character.transform.position;
-		//Character.transform.forward = selfToPlayer.normalized;
-		//if (selfToPlayer.sqrMagnitude > 2.25)
-		//	Character.Move(Vector2.right, true);
-		//else
-		//{
-		//	Character.Move(Vector2.zero, false);
-		//	Character.Attack(AttackType.Slash);
-		//}
-		thinkPeriod++;
-
-		if (thinkPeriod % 400 == 0)
+		movePeriod += delta;
+		if (movePeriod > MovePeriod)
+			movePeriod = 0f;
+		else
 		{
-			var rotation = Random.Range(0f, 90f);
-			//if (Random.value > 0.5f)
-			Character.Rotate(rotation);
+			Character.Move(move ? Vector2.right : Vector2.zero, move);
+			return;
 		}
 
-		if(thinkPeriod % 300 == 0)
+		switch (AiType)
 		{
-			if (Random.value > 0.8f)
+			case EnemyAiType.StandStill:
 				move = false;
-			else
-				move = true;
+				break;
+			case EnemyAiType.RoamSlow:
+			{
+				if (Character.MoveType != AnimationState.Walking)
+					Character.SetMoveType(AnimationState.Walking);
+
+				SetRoam();
+				if (IsInRange(SightRange, SightAngle))
+					SetToSearchAndDestroy();
+			}
+			break;
+			case EnemyAiType.RoamFast:
+				if (Character.MoveType != AnimationState.Running)
+					Character.SetMoveType(AnimationState.Running);
+				SetRoam();
+				if (IsInRange(SightRange, SightAngle))
+					SetToSearchAndDestroy();
+				break;
+			case EnemyAiType.SearchAndDestroy:
+			{
+				if (Character.MoveType != AnimationState.Running)
+					Character.SetMoveType(AnimationState.Running);
+
+				Vector3 selfToPlayer = CharacterManager.Instance.MainPlayer.transform.position - Character.transform.position;
+				float angle = Vector3.SignedAngle(Character.transform.forward, selfToPlayer, Vector3.up);
+				Character.Rotate(angle);
+				float attackRange = Character.Stats.AttackRange + CharacterManager.Instance.MainPlayer.Stats.Radius;
+				if (IsInRange(attackRange, AttackAngle) && Character.MoveType == AnimationState.Running)
+				{
+					move = false;
+					Character.Attack(AttackType.Slash);
+				}
+				else
+					move = true;
+			}
+			break;
+			default:
+				break;
 		}
 
 		Character.Move(move ? Vector2.right : Vector2.zero, move);
+	}
+
+	private void SetRoam()
+	{
+		var rotation = Random.Range(0f, 90f);
+		Character.Rotate(rotation);
+
+		move = Random.value < 0.8f ? true : false;
+	}
+
+	private bool IsInRange(float range, float angle)
+	{
+		Vector3 selfToPlayer = CharacterManager.Instance.MainPlayer.transform.position - Character.transform.position;
+		float angleBetween = Vector3.Angle(Character.transform.forward, selfToPlayer);
+		if (selfToPlayer.sqrMagnitude < range * range && angleBetween < angle / 2f)
+			return true;
+		else
+			return false;
+	}
+
+	private void SetToSearchAndDestroy()
+	{
+		AiType = EnemyAiType.SearchAndDestroy;
+		MovePeriod = 0.1f;
 	}
 }

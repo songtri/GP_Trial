@@ -4,14 +4,17 @@ using System.Collections.Generic;
 using UnityEditor.Animations;
 using UnityEngine;
 
-// TODO: need to seperate stats with actor control
 public class Character : MonoBehaviour
 {
 	[SerializeField]
 	private float HeavyDmgThreshold = 0.2f;
+	[SerializeField]
+	private float TurnSpeed = 90f;  // angle(degree) per second
+	[SerializeField]
+	private bool IgnoreTurnSpeed = false;
 
 	[HideInInspector]
-	public CharacterStats Stats;
+	public CharacterStats Stats = null;
 	private Animator animator;
 
 	private const float BodyRemoveWaitTime = 3f;
@@ -28,7 +31,9 @@ public class Character : MonoBehaviour
 	}
 	private bool SinkBody = false;
 	private float lastCombatTime = 0f;
-	private AnimationState moveType = AnimationState.Walking;
+	[HideInInspector]
+	public AnimationState MoveType = AnimationState.Running;
+	private float remainRotation = 0f;
 
 	public event Func<Character, bool> OnAttack;
 	public event Action OnEnterCombat;
@@ -42,7 +47,7 @@ public class Character : MonoBehaviour
 		get
 		{
 			var animState = animator.GetCurrentAnimatorStateInfo(0);
-			return animState.IsName("Idle") || animState.IsName("Walk");
+			return animState.IsName("Idle") || animState.IsName("Walk") || animState.IsName("Running");
 		}
 	}
 
@@ -70,6 +75,19 @@ public class Character : MonoBehaviour
 				OnOutOfCombat?.Invoke();
 		}
 		//Debug.Log("LastCombatTime: " + lastCombatTime);
+
+		if (remainRotation != 0f)
+		{
+			float rotation;
+			if (remainRotation > 0)
+				rotation = TurnSpeed * Time.deltaTime;
+			else
+				rotation = -TurnSpeed * Time.deltaTime;
+			if (Math.Sign(remainRotation - rotation) != Math.Sign(remainRotation))
+				rotation = remainRotation;
+			remainRotation -= rotation;
+			transform.Rotate(0f, rotation, 0f);
+		}
 	}
 
 	public void Init()
@@ -91,18 +109,26 @@ public class Character : MonoBehaviour
 				movement = new Vector3(forward.x * direction.x, 0f, forward.z * direction.x) * Time.deltaTime;
 			else if(direction.y != 0)
 				movement = new Vector3(forward.z * direction.y, 0f, - forward.x * direction.y) * Time.deltaTime;
-			//Debug.Log($"movement : {movement.x}, {movement.y}, {movement.z}");
 			var actualMovement = movement * Stats.MoveSpeed;
+			//if (this == CharacterManager.Instance.MainPlayer)
+			//{
+			//	Debug.Log($"movement : {movement.x}, {movement.y}, {movement.z}");
+			//	Debug.Log($"actualMovement : {actualMovement.x}, {actualMovement.y}, {actualMovement.z}");
+			//}
 			if (!CharacterManager.Instance.CheckCollisionWithOtherCharacter(this, actualMovement))
 				transform.localPosition += actualMovement;
 		}
-		animator.SetBool(AnimationState.Walking.ToString(), move);
+		//Debug.Log("MoveType: " + MoveType);
+		animator.SetBool(MoveType.ToString(), move);
 		//animator.SetTrigger(AnimationStateTrigger.AttackCancel.ToString());
 	}
 
 	public void Rotate(float xAngle)
 	{
-		transform.Rotate(0f, xAngle, 0f);
+		if (IgnoreTurnSpeed)
+			transform.Rotate(0f, xAngle, 0f);
+		else
+			remainRotation = xAngle;
 	}
 
 	public void Attack(AttackType type)
@@ -124,7 +150,7 @@ public class Character : MonoBehaviour
 		}
 	}
 
-	public void FinishMove(int type)
+	public void FinishingBlow(int type)
 	{
 		if (type == 1)
 		{
@@ -147,10 +173,18 @@ public class Character : MonoBehaviour
 
 	public void SetMoveType(AnimationState type)
 	{
-		if (type != AnimationState.Walking || type != AnimationState.Running)
+		if (MoveType == type)
 			return;
 
-		moveType = type;
+		Move(Vector2.zero, false);
+
+		if (type == AnimationState.Walking || type == AnimationState.Running || type == AnimationState.Sprint)
+			MoveType = type;
+
+		if (MoveType == AnimationState.Walking)
+			Stats.MoveSpeed /= 2f;
+		if (MoveType == AnimationState.Running || MoveType == AnimationState.Sprint)
+			Stats.MoveSpeed *= 2f;
 	}
 
 	#region Animation Event
