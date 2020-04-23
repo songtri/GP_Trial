@@ -4781,7 +4781,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Radius: 0.35
   AttackRange: 1.2
-  MoveSpeed: 2
+  MoveSpeed: 0.5
   MaxHP: 100
   CurrentHP: 0
   Damage: 10
@@ -4798,8 +4798,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Active: 1
-  AiType: 2
-  SightRange: 10
+  AiType: 0
+  SightRange: 5
   SightAngle: 120
   AttackAngle: 120
   MovePeriod: 0.1
