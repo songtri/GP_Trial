@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class BerserkAI : AIComponent
 {
+	public float AttackAngle = 120f;
+
+	private bool move = false;
+
 	public override void Think(float delta)
 	{
 		if (!Player.instance.IsInBerserkerState)
@@ -14,6 +18,9 @@ public class BerserkAI : AIComponent
 		Character nearestEnemy = null;
 		foreach (var enemy in CharacterManager.Instance.EnemyList)
 		{
+			if (enemy.CurrentHP <= 0)
+				continue;
+
 			playerToEnemy = enemy.transform.position - Character.transform.position;
 			if (sqrShortest > playerToEnemy.sqrMagnitude)
 			{
@@ -22,13 +29,25 @@ public class BerserkAI : AIComponent
 			}
 		}
 
-		Character.transform.forward = playerToEnemy.normalized;
-		if (sqrShortest > 2.25)
-			Character.Move(Vector2.left, true);
-		else
+		if (nearestEnemy == null)
 		{
 			Character.Move(Vector2.zero, false);
+			return;
+		}
+
+		float angle = Vector3.SignedAngle(Character.transform.forward, playerToEnemy, Vector3.up);
+		Character.Rotate(angle);
+		float attackRange = Character.Stats.AttackRange + CharacterManager.Instance.MainPlayer.Stats.Radius;
+		if (IsInRange(CharacterManager.Instance.MainPlayer.transform.position, nearestEnemy.transform.position, attackRange, AttackAngle) && Character.MoveType == AnimationState.Sprint)
+		{
+			move = false;
 			Character.Attack(AttackType.Slash);
 		}
+		else
+		{
+			move = true;
+		}
+
+		Character.Move(move ? Vector2.right : Vector2.zero, move);
 	}
 }

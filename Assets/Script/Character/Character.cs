@@ -11,13 +11,13 @@ public class Character : MonoBehaviour
 	[SerializeField]
 	private float TurnSpeed = 90f;  // angle(degree) per second
 	[SerializeField]
-	private bool IgnoreTurnSpeed = false;
+	public bool IgnoreTurnSpeed = false;
 
 	[HideInInspector]
 	public CharacterStats Stats = null;
 	private Animator animator;
 
-	private const float BodyRemoveWaitTime = 3f;
+	private const float BodyRemoveWaitTime = 5f;
 
 	public int CurrentHP
 	{
@@ -29,11 +29,11 @@ public class Character : MonoBehaviour
 				PrepareDie();
 		}
 	}
-	private bool SinkBody = false;
 	private float lastCombatTime = 0f;
 	[HideInInspector]
 	public AnimationState MoveType = AnimationState.Running;
 	private float remainRotation = 0f;
+	public bool IsTurning { get => remainRotation != 0f; }
 
 	public event Func<Character, bool> OnAttack;
 	public event Action OnEnterCombat;
@@ -47,7 +47,7 @@ public class Character : MonoBehaviour
 		get
 		{
 			var animState = animator.GetCurrentAnimatorStateInfo(0);
-			return animState.IsName("Idle") || animState.IsName("Walk") || animState.IsName("Running");
+			return animState.IsName("Idle") || animState.IsName("Walk") || animState.IsName("Running") || animState.IsName("Sprint");
 		}
 	}
 
@@ -63,11 +63,6 @@ public class Character : MonoBehaviour
 
 	private void Update()
 	{
-		if (SinkBody)
-		{
-			transform.localPosition -= new Vector3(0f, Time.deltaTime / 3f, 0f);
-		}
-
 		if (lastCombatTime < Player.minSecondToBeOutOfCombat)
 		{
 			lastCombatTime += Time.deltaTime;
@@ -133,20 +128,28 @@ public class Character : MonoBehaviour
 
 	public void Attack(AttackType type)
 	{
+		string triggerName = string.Empty;
 		switch (type)
 		{
 			case AttackType.Slash:
-				animator.SetTrigger(AnimationStateTrigger.SlashAttack.ToString());
+				triggerName = AnimationStateTrigger.SlashAttack.ToString();
 				break;
 			case AttackType.Blunt:
-				animator.SetTrigger(AnimationStateTrigger.BluntAttack.ToString());
+				triggerName = AnimationStateTrigger.BluntAttack.ToString();
 				break;
 			case AttackType.Pierce:
-				animator.SetTrigger(AnimationStateTrigger.PierceAttack.ToString());
+				triggerName = AnimationStateTrigger.PierceAttack.ToString();
 				break;
 			case AttackType.Max:
 			default:
 				break;
+		}
+
+		if (!string.IsNullOrEmpty(triggerName))
+		{
+			if (animator.GetCurrentAnimatorStateInfo(0).IsName(triggerName))
+				return;
+			animator.SetTrigger(triggerName);
 		}
 	}
 
@@ -182,9 +185,9 @@ public class Character : MonoBehaviour
 			MoveType = type;
 
 		if (MoveType == AnimationState.Walking)
-			Stats.MoveSpeed /= 2f;
+			Stats.MoveSpeed = Stats.WalkSpeed;
 		if (MoveType == AnimationState.Running || MoveType == AnimationState.Sprint)
-			Stats.MoveSpeed *= 2f;
+			Stats.MoveSpeed = Stats.RunSpeed;
 	}
 
 	#region Animation Event
@@ -196,8 +199,7 @@ public class Character : MonoBehaviour
 		bool hitTarget = OnAttack?.Invoke(this) ?? false;
 		if (hitTarget)
 		{
-			if (lastCombatTime >= Player.minSecondToBeOutOfCombat)
-				OnEnterCombat?.Invoke();
+			OnEnterCombat?.Invoke();
 			lastCombatTime = 0f;
 		}
 	}
@@ -222,14 +224,16 @@ public class Character : MonoBehaviour
 		}
 		else
 		{
-			if (dmgRatio >= HeavyDmgThreshold)
-				animator.SetTrigger(AnimationStateTrigger.HitByAttackerHeavy.ToString());
-			else
-				animator.SetTrigger(AnimationStateTrigger.HitByAttacker.ToString());
+			if (this != CharacterManager.Instance.MainPlayer)
+			{
+				if (dmgRatio >= HeavyDmgThreshold)
+					animator.SetTrigger(AnimationStateTrigger.HitByAttackerHeavy.ToString());
+				else
+					animator.SetTrigger(AnimationStateTrigger.HitByAttacker.ToString());
+			}
 		}
 		OnDamaged?.Invoke(damage, dmgRatio);
-		if (lastCombatTime >= Player.minSecondToBeOutOfCombat)
-			OnEnterCombat?.Invoke();
+		OnEnterCombat?.Invoke();
 		lastCombatTime = 0f;
 	}
 
@@ -241,7 +245,6 @@ public class Character : MonoBehaviour
 	IEnumerator ProcessDie()
 	{
 		yield return new WaitForSeconds(BodyRemoveWaitTime);
-		//SinkBody = true;
 
 		while (transform.localPosition.y > -5f)
 		{
@@ -263,5 +266,10 @@ public class Character : MonoBehaviour
 				state.speed *= times;
 			}
 		}
+	}
+
+	public void SetRageMode(bool enabled)
+	{
+		animator.SetBool(AnimationState.Rage.ToString(), enabled);
 	}
 }

@@ -27,6 +27,8 @@ public class GameController : MonoBehaviour
 
 		mainPlayer = characterManager.CreateMainPlayer();
 		mainPlayer.OnFinishTarget += MainPlayer_OnFinishTarget;
+		Player.instance.OnBerserkStateStarted += Instance_OnBerserkStateStarted;
+		Player.instance.OnBerserkStateEnded += Instance_OnBerserkStateEnded;
 
 		mainCamera.transform.parent = mainPlayer.transform;
 		mainCamera.transform.localPosition = /*mainPlayer.transform.position + */cameraPosToPlayer;
@@ -47,6 +49,10 @@ public class GameController : MonoBehaviour
 
 	private void UpdateCamera()
 	{
+		//if (Player.instance.IsInBerserkerState)
+		//{
+		//	mainCamera.transform.parent = null;
+		//}
 		//mainCamera.transform.position = mainPlayer.transform.position + cameraPosToPlayer;
 		//mainCamera.transform.SetPositionAndRotation(mainPlayer.transform.position + new Vector3(0f, 2f, -2.5f), mainPlayer.transform.rotation);
 	}
@@ -113,11 +119,18 @@ public class GameController : MonoBehaviour
 			float xAngle = Input.GetAxis("Mouse X");
 			mainPlayer.Rotate(xAngle * 1.5f);
 		}
+
+		//if (Player.instance.IsInBerserkerState)
+		//{
+		//	float xAngle = Input.GetAxis("Mouse X");
+		//	mainCamera.transform.Rotate(0f, xAngle, 0f);
+		//}
 	}
 
 	private void MainPlayer_OnFinishTarget(Character obj)
 	{
-		StartCoroutine(ShowFinalBlowUI());
+		if (!Player.instance.IsInBerserkerState)
+			StartCoroutine(ShowFinalBlowUI());
 	}
 
 	private IEnumerator ShowFinalBlowUI()
@@ -129,5 +142,15 @@ public class GameController : MonoBehaviour
 
 		Player.instance.CanUseFinalBlow = false;
 		UICombat.ShowFinalBlowNotice(false);
+	}
+
+	private void Instance_OnBerserkStateStarted()
+	{
+		UICombat.ShowVignetteImage(true);
+	}
+
+	private void Instance_OnBerserkStateEnded()
+	{
+		UICombat.ShowVignetteImage(false);
 	}
 }

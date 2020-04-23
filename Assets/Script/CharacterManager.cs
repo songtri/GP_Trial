@@ -16,14 +16,11 @@ public class CharacterManager : MonoBehaviour
 
 	private List<Character> activeCharacters = new List<Character>();
 	private Queue<Character> pooledCharacters = new Queue<Character>();
-
-	private Character mainPlayer = null;
-	private List<Character> enemyList = new List<Character>();
 	private List<Transform> enemySpawnPoints = new List<Transform>();
 	private int currentEnemySpawnIndex = 0;
 
-	public Character MainPlayer => mainPlayer;
-	public List<Character> EnemyList => enemyList;
+	public Character MainPlayer { get; private set; } = null;
+	public List<Character> EnemyList { get; } = new List<Character>();
 
 	public static CharacterManager Instance { get; private set; }
 
@@ -41,12 +38,12 @@ public class CharacterManager : MonoBehaviour
 
 	public Character CreateMainPlayer()
 	{
-		mainPlayer = GetCharacter(CharacterPrefab, MainPlayer_OnAttack, Player.instance.OnEnterCombat, MainPlayer_OnDamaged, Player.instance.OnOutOfCombat, MainPlayer_OnFinishTarget, MainPlayer_OnDie);
-		Player.instance.HP = mainPlayer.CurrentHP;
+		MainPlayer = GetCharacter(CharacterPrefab, MainPlayer_OnAttack, Player.instance.OnEnterCombat, MainPlayer_OnDamaged, Player.instance.OnOutOfCombat, MainPlayer_OnFinishTarget, MainPlayer_OnDie);
+		Player.instance.HP = MainPlayer.CurrentHP;
 		Player.instance.OnBerserkStateStarted += Instance_OnBerserkStateStarted;
 		Player.instance.OnBerserkStateEnded += Instance_OnBerserkStateEnded;
 
-		return mainPlayer;
+		return MainPlayer;
 	}
 
 	public Character GetCharacter(GameObject prefab, Func<Character, bool> onAttack, Action onEnterCombat, Action<int, float> onDamaged, Action onOutOfCombat, Action<Character> onFinishTarget, Action<Character> onDie)
@@ -73,6 +70,7 @@ public class CharacterManager : MonoBehaviour
 		return character;
 	}
 
+	private static int enemyNum = 0;
 	public void CreateEnemy()
 	{
 		var enemy = GetCharacter(EnemyPrefab, Enemy_OnAttack, null, null, null, null, Enemy_OnDie);
@@ -80,7 +78,8 @@ public class CharacterManager : MonoBehaviour
 		enemy.transform.position = enemySpawnPoints[currentEnemySpawnIndex++].position;
 		if (currentEnemySpawnIndex >= enemySpawnPoints.Count)
 			currentEnemySpawnIndex = 0;
-		enemyList.Add(enemy);
+		EnemyList.Add(enemy);
+		enemy.name += enemyNum++.ToString();
 	}
 
 	private bool CheckAttackRange(Character from, Character to)
@@ -101,7 +100,7 @@ public class CharacterManager : MonoBehaviour
 		var dest = character.transform.position + movement;
 		foreach (var c in activeCharacters)
 		{
-			if (c == character)
+			if (c == character || c.CurrentHP <= 0)
 				continue;
 
 			var diff = dest - c.transform.position;
@@ -114,7 +113,7 @@ public class CharacterManager : MonoBehaviour
 
 	public int GetEnemyCount()
 	{
-		return enemyList.Count;
+		return EnemyList.Count;
 	}
 
 	#region Event Handlers
@@ -122,9 +121,9 @@ public class CharacterManager : MonoBehaviour
 	private bool MainPlayer_OnAttack(Character obj)
 	{
 		bool isTargetHit = false;
-		foreach (var monster in enemyList)
+		foreach (var monster in EnemyList)
 		{
-			if (!monster.Stats.IsDead && CheckAttackRange(mainPlayer, monster))
+			if (!monster.Stats.IsDead && CheckAttackRange(MainPlayer, monster))
 			{
 				monster.OnAttacked(obj, Player.instance.GetCurrentDamage(obj.Stats.Damage));
 				Player.instance.OnAttack();
@@ -142,17 +141,26 @@ public class CharacterManager : MonoBehaviour
 
 	private void MainPlayer_OnFinishTarget(Character obj)
 	{
-		//throw new NotImplementedException();
+		if (!Player.instance.IsInBerserkerState)
+			Player.instance.GainRage(100);
 	}
 
 	private void Instance_OnBerserkStateStarted()
 	{
-		mainPlayer.SetMoveType(AnimationState.Sprint);
+		MainPlayer.IgnoreTurnSpeed = false;
+		MainPlayer.SetRageMode(true);
+		MainPlayer.SetMoveType(AnimationState.Sprint);
+		MainPlayer.Stats.MoveSpeed *= Player.moveSpeedBonusMultipliedInBerserk;
+		MainPlayer.Stats.MoveSpeed += Player.moveSpeedBonusAddedInBerserk;
 	}
 
 	private void Instance_OnBerserkStateEnded()
 	{
-		mainPlayer.SetMoveType(AnimationState.Running);
+		MainPlayer.IgnoreTurnSpeed = true;
+		MainPlayer.SetRageMode(false);
+		MainPlayer.SetMoveType(AnimationState.Running);
+		MainPlayer.Stats.MoveSpeed -= Player.moveSpeedBonusAddedInBerserk;
+		MainPlayer.Stats.MoveSpeed /= Player.moveSpeedBonusMultipliedInBerserk;
 	}
 
 	private void MainPlayer_OnDie(Character obj)
@@ -162,9 +170,9 @@ public class CharacterManager : MonoBehaviour
 
 	private bool Enemy_OnAttack(Character obj)
 	{
-		if (CheckAttackRange(obj, mainPlayer))
+		if (CheckAttackRange(obj, MainPlayer))
 		{
-			mainPlayer.OnAttacked(obj, obj.Stats.Damage);
+			MainPlayer.OnAttacked(obj, obj.Stats.Damage);
 			return true;
 		}
 
@@ -173,7 +181,7 @@ public class CharacterManager : MonoBehaviour
 
 	private void Enemy_OnDie(Character obj)
 	{
-		enemyList.Remove(obj);
+		EnemyList.Remove(obj);
 		activeCharacters.Remove(obj);
 		pooledCharacters.Enqueue(obj);
 		obj.gameObject.SetActive(false);

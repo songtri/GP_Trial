@@ -6,7 +6,8 @@ public enum AnimationState
 {
 	Walking,
 	Running,
-	Sprint
+	Sprint,
+	Rage,
 }
 
 public enum AnimationStateTrigger

@@ -14,6 +14,8 @@ public class UICombat : MonoBehaviour
 	[SerializeField]
 	private GameObject FinalBlowGroup = null;
 	[SerializeField]
+	private Image VignetteImage = null;
+	[SerializeField]
 	private UIDialog DialogCharacterSkill = null;
 	[SerializeField]
 	private UIDialog DialogQuestLog = null;
@@ -38,12 +40,24 @@ public class UICombat : MonoBehaviour
 		QuestDialogOpened.SetActive(false);
 	}
 
+	private int vignetteAlphaAdjustment = 1;
 	private void Update()
 	{
 		//Debug.Log("UICombat.Update: " + Time.deltaTime);
 		RageValue.text = string.Format(RageFormat, Player.instance.RageInt);
 		PlayerRage.value = Player.instance.Rage;
 		PlayerHP.text = string.Format(HpFormat, Player.instance.HP);
+
+		if (VignetteImage.gameObject.activeInHierarchy)
+		{
+			Color32 oldColor = VignetteImage.color;
+			int alpha = oldColor.a;
+			if (alpha >= 200)
+				vignetteAlphaAdjustment = -1;
+			else if (alpha <= 50)
+				vignetteAlphaAdjustment = 1;
+			VignetteImage.color = new Color32(oldColor.r, oldColor.g, oldColor.b, (byte)(alpha + vignetteAlphaAdjustment));
+		}
 	}
 
 	public void OnClickCharacter()
@@ -61,5 +75,12 @@ public class UICombat : MonoBehaviour
 	public void ShowFinalBlowNotice(bool show)
 	{
 		FinalBlowGroup.SetActive(show);
+		Color32 oldColor = VignetteImage.color;
+		VignetteImage.color = new Color32(oldColor.r, oldColor.g, oldColor.b, 130);
+	}
+
+	public void ShowVignetteImage(bool show)
+	{
+		VignetteImage.gameObject.SetActive(show);
 	}
 }

@@ -9,7 +9,7 @@ abstract public class AIComponent : MonoBehaviour
 
 	protected Character Character = null;
 
-	private void Start()
+	protected virtual void Start()
 	{
 		Character = GetComponent<Character>();
 	}
@@ -21,4 +21,15 @@ abstract public class AIComponent : MonoBehaviour
 	}
 
 	public abstract void Think(float delta);
+
+	protected bool IsInRange(Vector3 from, Vector3 to, float range, float angle)
+	{
+		Vector3 diff = to - from;
+		diff.y = 0f;
+		float angleBetween = Vector3.Angle(Character.transform.forward, diff);
+		if (diff.sqrMagnitude < range * range && angleBetween < angle / 2f)
+			return true;
+		else
+			return false;
+	}
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,7 +8,7 @@ public class EnemyAI : AIComponent
 	public enum EnemyAiType
 	{
 		StandStill,
-		GuardArea,
+		//GuardArea,
 		RoamSlow,
 		RoamFast,
 		SearchAndDestroy,
@@ -21,6 +22,13 @@ public class EnemyAI : AIComponent
 
 	private float movePeriod = 0;
 	private bool move = true;
+
+	protected override void Start()
+	{
+		base.Start();
+		System.Random random = new System.Random();
+		AiType = (EnemyAiType)random.Next(0, 4);
+	}
 
 	public override void Think(float delta)
 	{
@@ -44,7 +52,7 @@ public class EnemyAI : AIComponent
 					Character.SetMoveType(AnimationState.Walking);
 
 				SetRoam();
-				if (IsInRange(SightRange, SightAngle))
+				if (IsInRange(Character.transform.position, CharacterManager.Instance.MainPlayer.transform.position, SightRange, SightAngle))
 					SetToSearchAndDestroy();
 			}
 			break;
@@ -52,7 +60,7 @@ public class EnemyAI : AIComponent
 				if (Character.MoveType != AnimationState.Running)
 					Character.SetMoveType(AnimationState.Running);
 				SetRoam();
-				if (IsInRange(SightRange, SightAngle))
+				if (IsInRange(Character.transform.position, CharacterManager.Instance.MainPlayer.transform.position, SightRange, SightAngle))
 					SetToSearchAndDestroy();
 				break;
 			case EnemyAiType.SearchAndDestroy:
@@ -64,7 +72,7 @@ public class EnemyAI : AIComponent
 				float angle = Vector3.SignedAngle(Character.transform.forward, selfToPlayer, Vector3.up);
 				Character.Rotate(angle);
 				float attackRange = Character.Stats.AttackRange + CharacterManager.Instance.MainPlayer.Stats.Radius;
-				if (IsInRange(attackRange, AttackAngle) && Character.MoveType == AnimationState.Running)
+				if (IsInRange(Character.transform.position, CharacterManager.Instance.MainPlayer.transform.position, attackRange, AttackAngle) && Character.MoveType == AnimationState.Running)
 				{
 					move = false;
 					Character.Attack(AttackType.Slash);
@@ -82,20 +90,10 @@ public class EnemyAI : AIComponent
 
 	private void SetRoam()
 	{
-		var rotation = Random.Range(0f, 90f);
+		var rotation = UnityEngine.Random.Range(0f, 90f);
 		Character.Rotate(rotation);
 
-		move = Random.value < 0.8f ? true : false;
-	}
-
-	private bool IsInRange(float range, float angle)
-	{
-		Vector3 selfToPlayer = CharacterManager.Instance.MainPlayer.transform.position - Character.transform.position;
-		float angleBetween = Vector3.Angle(Character.transform.forward, selfToPlayer);
-		if (selfToPlayer.sqrMagnitude < range * range && angleBetween < angle / 2f)
-			return true;
-		else
-			return false;
+		move = UnityEngine.Random.value < 0.8f ? true : false;
 	}
 
 	private void SetToSearchAndDestroy()
