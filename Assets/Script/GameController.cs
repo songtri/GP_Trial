@@ -84,35 +84,14 @@ public class GameController : MonoBehaviour
 			}
 		}
 
-		int forwardMove = 0;
-		int sideMove = 0;
-		if (Input.GetKey(KeyCode.W))
-			forwardMove = 1;
-		else if (Input.GetKeyUp(KeyCode.W))
-			forwardMove = 0;
-		if (Input.GetKey(KeyCode.A))
-			sideMove = -1;
-		else if (Input.GetKeyUp(KeyCode.A))
-			sideMove = 0;
-		if (Input.GetKey(KeyCode.S))
-			forwardMove = -1;
-		else if (Input.GetKeyUp(KeyCode.S))
-			forwardMove = 0;
-		if (Input.GetKey(KeyCode.D))
-			sideMove = 1;
-		else if (Input.GetKeyUp(KeyCode.D))
-			sideMove = 0;
-
 		if (!EventSystem.current.IsPointerOverGameObject() && !Player.instance.IsInBerserkerState)
 		{
-			Vector2 direction = new Vector2(forwardMove, sideMove);
-			bool move = forwardMove != 0 || sideMove != 0;
+			Vector2 direction = new Vector2(Input.GetAxis("Vertical"), Input.GetAxis("Horizontal"));
+			bool move = direction.x != 0 || direction.y != 0;
 			mainPlayer.Move(direction, move);
 
 			if (Input.GetMouseButtonDown(0))
-			{
 				mainPlayer.Attack(Player.instance.GetAttack(0));
-			}
 			if (Input.GetMouseButtonDown(1))
 				mainPlayer.Attack(Player.instance.GetAttack(1));
 
