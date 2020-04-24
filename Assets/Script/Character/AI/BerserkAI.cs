@@ -35,6 +35,8 @@ public class BerserkAI : AIComponent
 			return;
 		}
 
+		playerToEnemy = nearestEnemy.transform.position - Character.transform.position;
+
 		float angle = Vector3.SignedAngle(Character.transform.forward, playerToEnemy, Vector3.up);
 		Character.Rotate(angle);
 		float attackRange = Character.Stats.AttackRange + CharacterManager.Instance.MainPlayer.Stats.Radius;
