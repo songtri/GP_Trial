@@ -12,6 +12,8 @@ public class GameController : MonoBehaviour
 	private UICombat UICombat = null;
 	[SerializeField]
 	private CharacterManager characterManager = null;
+	[SerializeField]
+	private bool AutoTargeting = true;
 
 	[SerializeField]
 	private int MaxEnemy = 3;
@@ -90,20 +92,30 @@ public class GameController : MonoBehaviour
 			bool move = direction.x != 0 || direction.y != 0;
 			mainPlayer.Move(direction, move);
 
+			bool attacking = false;
 			if (Input.GetMouseButtonDown(0))
+			{
 				mainPlayer.Attack(Player.instance.GetAttack(0));
+				attacking = true;
+			}
 			if (Input.GetMouseButtonDown(1))
+			{
 				mainPlayer.Attack(Player.instance.GetAttack(1));
+				attacking = true;
+			}
+			if (attacking && AutoTargeting)
+			{
+				float angle;
+				if (CharacterManager.Instance.GetAutoTargetAngle(out angle))
+					mainPlayer.Rotate(angle);
+			}
 
-			float xAngle = Input.GetAxis("Mouse X");
-			mainPlayer.Rotate(xAngle * 1.5f);
+			if (mainPlayer.IsMovable)
+			{
+				float xAngle = Input.GetAxis("Mouse X");
+				mainPlayer.Rotate(xAngle * 1.5f);
+			}
 		}
-
-		//if (Player.instance.IsInBerserkerState)
-		//{
-		//	float xAngle = Input.GetAxis("Mouse X");
-		//	mainCamera.transform.Rotate(0f, xAngle, 0f);
-		//}
 	}
 
 	private void MainPlayer_OnFinishTarget(Character obj)

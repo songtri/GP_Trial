@@ -13,12 +13,12 @@ public class BerserkAI : AIComponent
 		if (!Player.instance.IsInBerserkerState)
 			return;
 
-		Vector3 playerToEnemy = Vector3.zero;
+		Vector3 playerToEnemy;
 		float sqrShortest = float.MaxValue;
 		Character nearestEnemy = null;
 		foreach (var enemy in CharacterManager.Instance.EnemyList)
 		{
-			if (enemy.CurrentHP <= 0)
+			if (enemy.IsDead)
 				continue;
 
 			playerToEnemy = enemy.transform.position - Character.transform.position;

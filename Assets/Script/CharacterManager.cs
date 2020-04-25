@@ -13,6 +13,10 @@ public class CharacterManager : MonoBehaviour
 	private GameObject EnemySpawnPoints = null;
 	[SerializeField]
 	private Transform EnemyObjectRoot = null;
+	[SerializeField]
+	private float AutoTargetRange = 2f;
+	[SerializeField]
+	private float AutoTargetAngle = 45f;
 
 	private List<Character> activeCharacters = new List<Character>();
 	private Queue<Character> pooledCharacters = new Queue<Character>();
@@ -116,17 +120,55 @@ public class CharacterManager : MonoBehaviour
 		return EnemyList.Count;
 	}
 
+	public bool GetAutoTargetAngle(out float angle)
+	{
+		Vector3 playerToEnemy;
+		float sqrShortest = float.MaxValue;
+		float sqrAutoTargetRange = AutoTargetRange * AutoTargetRange;
+		Character nearestEnemy = null;
+		// find the nearest enemy in auto target range
+		foreach (var enemy in EnemyList)
+		{
+			if (enemy.IsDead)
+				continue;
+
+			playerToEnemy = enemy.transform.position - MainPlayer.transform.position;
+			if (playerToEnemy.sqrMagnitude < sqrAutoTargetRange && playerToEnemy.sqrMagnitude < sqrShortest)
+			{
+				sqrShortest = playerToEnemy.sqrMagnitude;
+				nearestEnemy = enemy;
+			}
+		}
+
+		angle = 0f;
+		if (nearestEnemy == null)
+			return false;
+
+		playerToEnemy = nearestEnemy.transform.position - MainPlayer.transform.position;
+
+		// find the angle to turn
+		float angleToTurn = Vector3.SignedAngle(MainPlayer.transform.forward, playerToEnemy, Vector3.up);
+		// compare it with auto target angle and if it is within auto target angle, turn
+		if (Math.Abs(angleToTurn) < Math.Abs(AutoTargetAngle))
+		{
+			angle = angleToTurn;
+			return true;
+		}
+
+		return false;
+	}
+
 	#region Event Handlers
 
 	private bool MainPlayer_OnAttack(Character obj)
 	{
 		bool isTargetHit = false;
-		foreach (var monster in EnemyList)
+		foreach (var enemy in EnemyList)
 		{
-			if (!monster.Stats.IsDead && CheckAttackRange(MainPlayer, monster))
+			if (!enemy.Stats.IsDead && CheckAttackRange(MainPlayer, enemy))
 			{
-				monster.OnAttacked(obj, Player.instance.GetCurrentDamage(obj.Stats.Damage));
-				Player.instance.OnAttack();
+				enemy.OnAttacked(obj, Player.instance.GetCurrentDamage(obj.Stats.Damage));
+				Player.instance.OnAttack(enemy);
 				isTargetHit = true;
 			}
 		}

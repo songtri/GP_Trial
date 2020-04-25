@@ -693,6 +693,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Hangry
       objectReference: {fileID: 0}
+    - target: {fileID: 5069917773291602648, guid: 684be047318b837449fc14958003ca2d,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8070642407813329099, guid: 684be047318b837449fc14958003ca2d,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -4862,6 +4867,8 @@ MonoBehaviour:
     type: 3}
   EnemySpawnPoints: {fileID: 1666264062}
   EnemyObjectRoot: {fileID: 1801090500}
+  AutoTargetRange: 2
+  AutoTargetAngle: 45
 --- !u!4 &1457455423
 Transform:
   m_ObjectHideFlags: 0
@@ -5717,6 +5724,7 @@ MonoBehaviour:
   mainCamera: {fileID: 835954936}
   UICombat: {fileID: 1134095456}
   characterManager: {fileID: 1457455422}
+  AutoTargeting: 1
   MaxEnemy: 5
   cameraPosToPlayer: {x: 0, y: 1.6, z: -2.75}
 --- !u!4 &1742063453

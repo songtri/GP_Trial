@@ -56,6 +56,8 @@ public class Player
 	public event Action OnBerserkStateStarted;
 	public event Action OnBerserkStateEnded;
 
+	public Character CurrentTarget = null;
+
 	public void SetAttack(int button, int skill)
 	{
 		if (button == 0 || button == 1)
@@ -115,8 +117,9 @@ public class Player
 		}
 	}
 
-	public void OnAttack()
+	public void OnAttack(Character target)
 	{
+		CurrentTarget = target;
 		if (!IsInBerserkerState)
 			GainRage(rageGainPerAttack);
 	}

@@ -19,6 +19,7 @@ public class Character : MonoBehaviour
 
 	private const float BodyRemoveWaitTime = 5f;
 
+	public bool IsDead => CurrentHP <= 0;
 	public int CurrentHP
 	{
 		get => Stats?.CurrentHP ?? 0;
@@ -42,7 +43,7 @@ public class Character : MonoBehaviour
 	public event Action<Character> OnFinishTarget;
 	public event Action<Character> OnDie;
 
-	private bool IsMovable
+	public bool IsMovable
 	{
 		get
 		{
