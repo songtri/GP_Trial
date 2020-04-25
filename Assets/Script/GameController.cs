@@ -33,7 +33,7 @@ public class GameController : MonoBehaviour
 		mainCamera.transform.parent = mainPlayer.transform;
 		mainCamera.transform.localPosition = /*mainPlayer.transform.position + */cameraPosToPlayer;
 		mainCamera.transform.forward = mainPlayer.transform.forward;
-		mainCamera.transform.Rotate(7f, 0f, 0f);
+		mainCamera.transform.Rotate(8f, 0f, 0f);
 	}
 
 	private void Update()
